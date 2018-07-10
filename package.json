@@ -11,6 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "electron": "^2.0.4",
-    "electron-game-util": "file:../electron-game-util"
+    "electron-game-util": "file:///D:/Programming/games/electron-game-util"
   }
 }
