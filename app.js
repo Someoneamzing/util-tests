@@ -1,7 +1,6 @@
 const {app, BrowserWindow, ipcMain} = require('electron');
 const path = require("path");
 const url = require('url');
-global.DIRNAME = app.getAppPath();
 
 let win;
 let clients = [];

@@ -1,49 +1,22 @@
 const {ipcRenderer} = require('electron');
 
-const {Server, ConnectionManager, TrackList, NetworkWrapper, Rectangle} = require('electron-game-util');
+const {Server, ConnectionManager, TrackList, NetworkWrapper, Rectangle, GameLoop} = require('electron-game-util');
 global.SIDE = ConnectionManager.SERVER;
 
+const Entity = require('./classes/Entity.js');
+const Wall = require('./classes/Wall.js');
+const Player = require('./classes/Player.js');
+const World = require('./classes/World.js');
+
 let server = new Server(2000);
+let loop = new GameLoop('main', 1000/60);
 
-connection = new ConnectionManager(SIDE, server);
+global.connection = new ConnectionManager(SIDE, server);
 
-let TestTrack = new TrackList(SIDE);
-
-class TestClass1 extends NetworkWrapper(Rectangle, TestTrack) {
-  constructor(opts){
-    let {x,y,w,h} = opts;
-    super(opts,x,y,w,h);
-    this.name = opts.name;
-  }
-
-  getInitPkt(){
-    let pack = super.getInitPkt();
-    pack.x = this.x;
-    pack.y = this.y;
-    pack.w = this.w;
-    pack.h = this.h;
-    pack.name = this.name;
-    return pack;
-  }
-
-  getUpdatePkt(){
-    let pack = super.getInitPkt();
-    pack.x = this.x;
-    pack.y = this.y;
-    pack.w = this.w;
-    pack.h = this.h;
-    return pack;
-  }
-
-  update(){
-    this.x += 5;
-  }
-}
-
-TestTrack.setType(TestClass1);
-
-connection.addTrackList(TestTrack)
-
+connection.addTrackList(Entity.list);
+connection.addTrackList(Wall.list);
+connection.addTrackList(Player.list);
+connection.addTrackList(World.list);
 
 window.onload = ()=>{
   console.log("Document Loaded");
@@ -54,19 +27,33 @@ window.onload = ()=>{
     ipcRenderer.send('new-client', document.getElementById('client-connect').value);
   }
 
-  let loopID;
+  document.getElementById('start-server').onclick = start;
 
-  document.getElementById('start-server').onclick = ()=>{
 
-    server.begin();
+}
 
-    loopID = requestAnimationFrame(loop)
-  }
+loop.setLoop(()=>{
+  connection.init();
+  Entity.registerCollidables();
+  connection.update();
+  connection.remove();
+})
 
-  function loop(){
-    connection.init();
-    connection.update();
-    connection.remove();
-    requestAnimationFrame(loop)
-  }
+function start(){
+  document.getElementById('start-server').innerText = "Running ...";
+  document.getElementById('start-server').disabled = true;
+  new World({netID: 'main', displayName: 'Homeworld'});
+
+  server.on('connection', (socket)=>{
+    console.log('New Player');
+    let p = new Player({socketID: socket.id});
+    socket.emit('connected-to-world', p.netID)
+    socket.on('disconnect', (e)=>{
+      console.log("Player Disconnected");
+      p.remove();
+    })
+  })
+
+  server.begin();
+  loop.play();
 }
