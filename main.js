@@ -7,6 +7,9 @@ const Entity = require('./classes/Entity.js');
 const Wall = require('./classes/Wall.js');
 const Player = require('./classes/Player.js');
 const World = require('./classes/World.js');
+const Enemy = require('./classes/Enemy.js');
+const Inventory = require('./classes/Inventory.js');
+const Item = require('./classes/Item.js');
 
 let server = new Server(2000);
 let loop = new GameLoop('main', 1000/60);
@@ -17,6 +20,9 @@ connection.addTrackList(Entity.list);
 connection.addTrackList(Wall.list);
 connection.addTrackList(Player.list);
 connection.addTrackList(World.list);
+connection.addTrackList(Enemy.list);
+connection.addTrackList(Inventory.list);
+connection.addTrackList(Item.list);
 
 window.onload = ()=>{
   console.log("Document Loaded");

@@ -1,4 +1,4 @@
-const {Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList} = require('electron-game-util');
+const {Point, Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList, QueryResult} = require('electron-game-util');
 const World = require('./World.js');
 
 let list = new TrackList(SIDE, false);
@@ -6,7 +6,6 @@ let list = new TrackList(SIDE, false);
 class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
   constructor(opts = {}){
     let {x = 0,y = 0,w = 32,h = 32,world = World.list.get('main')} = opts;
-    console.log(World.list);
     super(opts,x,y,w,h);
     this.hsp = 0;
     this.vsp = 0;
@@ -100,10 +99,18 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
     return false;
   }
 
+  nearest(x = this.x, y = this.y, solid = false, distance = 0, types){
+    let res = this.world.collisionTree.nearest(new Point(x,y), typeof types == 'string'?[types]:types, distance).getGroup('found');
+    if (res.length > 0){
+      return res[0];
+    } else {
+      return false;
+    }
+  }
+
   static registerCollidables(){
     for(let id of World.list.getIds()){
       World.list.get(id).collisionTree.clear();
-      //console.log("Clearing " + World.list.get(id).displayName + "'s collisionTree'");
     }
     for (let id of Entity.list.getIds()){
       let e = Entity.list.get(id);
