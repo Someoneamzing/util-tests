@@ -10,7 +10,10 @@
   "author": "Jacob McEwan",
   "license": "ISC",
   "dependencies": {
+    "bootstrap": "^4.1.2",
     "electron": "^2.0.4",
-    "electron-game-util": "file:///D:/Programming/games/electron-game-util"
+    "electron-game-util": "file:///D:/Programming/games/electron-game-util",
+    "jquery": "^3.3.1",
+    "popper.js": "^1.14.3"
   }
 }

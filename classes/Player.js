@@ -1,5 +1,7 @@
 const {Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList} = require('electron-game-util');
 const Entity = require('./Entity.js');
+const ItemEntity = require('./ItemEntity.js');
+const Item = require('./Item.js');
 const Inventory = require('./Inventory.js');
 
 let list = new TrackList(SIDE);
@@ -8,6 +10,10 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
   constructor(opts){
     super(opts);
     this.socketID = opts.socketID;
+    this.name = opts.name;
+    this.lastLeft = false;
+    this.lastMiddle = false;
+    this.lastRight = false;
 
     if (SIDE == ConnectionManager.SERVER) {
       this.controls = connection.connections[this.socketID].controls;
@@ -41,9 +47,16 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
     gc.fill(153, 0, 255);
     gc.stroke(92, 0, 153);
     gc.rect(this.x, this.y, this.w, this.h);
-    // gc.fill(0,204,102);
-    // gc.stroke(0,128,64);
-    //gc.circle(this.mouse.x, this.mouse.y, 3)
+    gc.fill('black');
+    gc.noStroke();
+    gc.textAlign('center', 'bottom');
+    gc.text(this.name, this.x, this.y - this.h/2 - 20);
+    gc.fill('red');
+    gc.stroke('grey');
+    gc.rect(this.x, this.y - this.h/2 - 10, 32, 5);
+    gc.fill('green');
+    gc.noStroke();
+    gc.cornerRect(this.x - 16, this.y - this.h/2 - 12.5, (this.health/this.maxHealth) * 32, 5);
   }
 
   update(pack){
@@ -51,8 +64,22 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
       case ConnectionManager.SERVER:
         this.controls = connection.connections[this.socketID].controls;
         if (this.controls){
+          let mouse = this.controls.mouse;
           this.hsp = (Number(this.controls.keys["D"]||0) - Number(this.controls.keys['A']||0)) * this.walkSpeed;
           this.vsp = (Number(this.controls.keys["S"]||0) - Number(this.controls.keys['W']||0)) * this.walkSpeed;
+          if (this.inventory.selected.type != null){
+            if (mouse.left == true && this.lastLeft == false){
+              Item.attack(this.inventory.selected, this);
+            }
+            if (mouse.right == true && this.lastRight == false){
+              Item.use(this.inventory.selected, this);
+            }
+          }
+
+
+          this.lastLeft = mouse.left;
+          this.lastRight = mouse.right;
+          this.lastMiddle = mouse.middle;
         }
 
         super.update()
@@ -61,6 +88,7 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
       case ConnectionManager.CLIENT:
         super.update(pack);
         this.mouse = pack.mouse;
+        this.name = pack.name;
         this.inventoryID = pack.inventoryID;
         break;
     }
@@ -70,6 +98,7 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
     let pack = super.getUpdatePkt();
     if (this.controls) {pack.mouse = {x: this.controls.mouse.x, y: this.controls.mouse.y};} else {pack.mouse = {x: 0, y: 0}}
     pack.inventoryID = this.inventoryID;
+    pack.name = this.name;
     return pack;
   }
 
@@ -77,6 +106,7 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
     let pack = super.getInitPkt();
     pack.mouse = {x: 0, y: 0};
     pack.inventoryID = this.inventoryID;
+    pack.name = this.name;
     return pack;
   }
 

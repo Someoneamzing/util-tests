@@ -44,3 +44,31 @@ html, body {
   width: 100vw;
   height: 100vh;
 }
+
+
+#front-screen {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  text-align: center;
+  background: white;
+}
+
+#login {
+  width: 400px;
+  height: 300px;
+  position: fixed;
+  top: calc(50vh - 150px);
+  left: calc(50vw - 200px);
+  border: 1px solid grey;
+  border-radius: 5px;
+  padding: 20px;
+}
+
+#login .btn-group{
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}

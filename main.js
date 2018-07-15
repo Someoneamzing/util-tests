@@ -1,6 +1,6 @@
 const {ipcRenderer} = require('electron');
 
-const {Server, ConnectionManager, TrackList, NetworkWrapper, Rectangle, GameLoop} = require('electron-game-util');
+const {Server, ConnectionManager, TrackList, NetworkWrapper, Rectangle, GameLoop, Line, Point} = require('electron-game-util');
 global.SIDE = ConnectionManager.SERVER;
 
 const Entity = require('./classes/Entity.js');
@@ -9,7 +9,7 @@ const Player = require('./classes/Player.js');
 const World = require('./classes/World.js');
 const Enemy = require('./classes/Enemy.js');
 const Inventory = require('./classes/Inventory.js');
-const Item = require('./classes/Item.js');
+const ItemEntity = require('./classes/ItemEntity.js');
 
 let server = new Server(2000);
 let loop = new GameLoop('main', 1000/60);
@@ -22,7 +22,9 @@ connection.addTrackList(Player.list);
 connection.addTrackList(World.list);
 connection.addTrackList(Enemy.list);
 connection.addTrackList(Inventory.list);
-connection.addTrackList(Item.list);
+connection.addTrackList(ItemEntity.list);
+
+require('./items.js');
 
 window.onload = ()=>{
   console.log("Document Loaded");
@@ -52,11 +54,14 @@ function start(){
 
   server.on('connection', (socket)=>{
     console.log('New Player');
-    let p = new Player({socketID: socket.id});
-    socket.emit('connected-to-world', p.netID)
-    socket.on('disconnect', (e)=>{
-      console.log("Player Disconnected");
-      p.remove();
+    socket.once('login', ({name, pass})=>{
+
+      let p = new Player({socketID: socket.id, name});
+      socket.emit('connected-to-world', p.netID);
+      socket.on('disconnect', (e)=>{
+        console.log("Player Disconnected");
+        p.remove();
+      })
     })
   })
 

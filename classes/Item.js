@@ -2,58 +2,30 @@ const {Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList} 
 const Entity = require('./Entity.js');
 const Player = require('./Player.js');
 
-let list = new TrackList(SIDE);
+let list = new TrackList(SIDE, false);
 
-class Item extends NetworkWrapper(CollisionGroup(Entity,'Item'), list) {
-  constructor(opts = {}){
-    super(opts);
-    let {type = 'stone', count = 1, pickupDelay = 0} = opts;
-    this.type = type;
-    this.count = count;
-    this.pickupDelay = 0;
+class Item extends NetworkWrapper(Object, list) {
+  constructor(name, sprite = ('item-' + name), maxStack = 99){
+    super({netID: name});
+    this.name = name;
+    this.sprite = sprite;
+    this.maxStack = maxStack;
   }
 
-  update(pack){
-    switch (SIDE) {
-      case ConnectionManager.SERVER:
-        if (this.pickupDelay <= 0){
-          let p = this.collision(this.x, this.y, false, 'Player');
-          if (p) {
-            this.count -= p.inventory.add(this.type, this.count);
-            if (this.count <= 0) this.remove();
-          }
-        } else {
-          this.pickupDelay = Math.max(this.pickupDelay - 1, 0);
-        }
-        super.update()
-        break;
-      case ConnectionManager.CLIENT:
-        super.update(pack);
-        this.type = pack.type;
-        this.count = pack.count;
-        this.pickupDelay = pack.pickupDelay;
-        break;
-    }
+  use(stack, player){
+    return false;
   }
 
-  getUpdatePkt(){
-    let pack = super.getUpdatePkt();
-    pack.count = this.count;
-    pack.type = this.type;
-    pack.pickupDelay = this.pickupDelay;
-    return pack;
+  attack(stack, player){
+    return false;
   }
 
-  getInitPkt(){
-    let pack = super.getInitPkt();
-    pack.count = this.count;
-    pack.type = this.type;
-    pack.pickupDelay = this.pickupDelay;
-    return pack;
+  static use(stack, player){
+    Item.list.get(stack.type).use(stack, player);
   }
 
-  show(gc){
-    Sprite.get('item-' + this.type).draw(gc, this.x, this.y, 32, 32);
+  static attack(stack, player){
+    Item.list.get(stack.type).attack(stack, player);
   }
 }
 

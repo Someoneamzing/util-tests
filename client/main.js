@@ -1,6 +1,8 @@
-const {Client, Sprite, ConnectionManager, ControlInterface, TrackList, NetworkWrapper, Rectangle, Circle, GameLoop, GameCanvas} = require('electron-game-util');
+const {Client, Sprite, ConnectionManager, ControlInterface, TrackList, NetworkWrapper, Rectangle, Line, Point, Circle, GameLoop, GameCanvas} = require('electron-game-util');
 global.SIDE = ConnectionManager.CLIENT;
 let host = decodeURIComponent(location.hash.slice(1));
+
+require('bootstrap');
 
 const Entity = require('../classes/Entity.js');
 const Wall = require('../classes/Wall.js');
@@ -8,7 +10,7 @@ const Player = require('../classes/Player.js');
 const Enemy = require('../classes/Enemy.js');
 const World = require('../classes/World.js');
 const Inventory = require('../classes/Inventory.js');
-const Item = require('../classes/Item.js');
+const ItemEntity = require('../classes/ItemEntity.js');
 
 let client;
 
@@ -25,11 +27,14 @@ function ready(){
   connection.addTrackList(Player.list);
   connection.addTrackList(World.list);
   connection.addTrackList(Inventory.list);
-  connection.addTrackList(Item.list);
+  connection.addTrackList(ItemEntity.list);
 
-  require('./sprites.js');
+  $('#login').submit((e)=>{
+    e.preventDefault();
+    require('./sprites.js');
 
-  Sprite.loadAll($('#load')).then(start);
+    Sprite.loadAll($('#load')).then(start);
+  })
 }
 
 function start(){
@@ -45,6 +50,7 @@ function start(){
 
   client.on('connected-to-world', (netID)=>{
     console.log('In World');
+    $('#front-screen').hide();
     playerID = netID;
     let whenDone = (pack)=>{
       myPlayer = Player.list.get(netID);
@@ -70,7 +76,7 @@ function start(){
     //gc.clear();
     gc.begin();
     Wall.list.run('show', gc);
-    Item.list.run('show', gc);
+    ItemEntity.list.run('show', gc);
     Enemy.list.run('show', gc);
     Player.list.run('show', gc);
     gc.fill("black")
@@ -82,6 +88,22 @@ function start(){
     gc.noStroke();
     gc.fill('green');
     gc.cornerRect(10,10, (myPlayer.health / myPlayer.maxHealth) * 100, 15);
+
+    let offset = myPlayer.inventory.hotbarSize * 32;
+    for (let i = 0; i < myPlayer.inventory.hotbarSize; i ++){
+      gc.fill(0,0,0,0.7);
+      gc.stroke(128,128,128);
+      gc.rect(gc.w/2 - offset + 64 * i, 32, 64, 64);
+      if (myPlayer.inventory.hotbar[i].type != null){
+        Sprite.get('item-' + myPlayer.inventory.hotbar[i].type).draw(gc, gc.w/2 - offset + 64 * i, 32, 64, 64);
+        if (myPlayer.inventory.hotbar[i].count > 1){
+          gc.noStroke();
+          gc.fill('white');
+          gc.text(myPlayer.inventory.hotbar[i].count, gc.w/2 - offset + 64 * i + 20, 10);
+        }
+      }
+    }
+
     controls.endCycle();
     Sprite.endDraw();
   })
@@ -89,6 +111,12 @@ function start(){
   window.onresize = (e)=>{
     gc.resize();
   }
+
+
+  let user = $('#user').val();
+  let pass = $("#pass").val();
+
+  client.send('login', {name: user, pass})
 }
 
 window.onload = ready;

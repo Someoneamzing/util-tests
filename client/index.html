@@ -3,10 +3,25 @@
   <head>
     <meta charset="utf-8">
     <title>Electron Game Client</title>
+    <!-- <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js" charset="utf-8"></script> -->
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
     <script src="./main.js" charset="utf-8"></script>
     <link rel="stylesheet" href="./style.css">
   </head>
   <body>
+    <div id='front-screen'>
+      <form id='login' class='shadow'>
+        <div class="form-group">
+          <input type="text" id="user" value="" placeholder="Username" class="form-control">
+        </div>
+        <div class="form-group">
+          <input type="password" id="pass" value="" placeholder="Password" class="form-control">
+        </div>
+        <div class="btn-group">
+          <button type="submit" id="login-btn" class='btn btn-primary'>Login</button><button type="button" id="sign-up" class='btn'>Sign Up</button>
+        </div>
+      </form>
+    </div>
     <div id='load-container'>
       <progress value="20" max="100" id='load'></progress>
     </div>

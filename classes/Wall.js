@@ -16,6 +16,10 @@ class Wall extends NetworkWrapper(CollisionGroup(Entity, 'Wall'),list) {
     gc.fill('black');
     gc.ctx.fillText(this.x + ", " + this.y, this.x, this.y);
   }
+
+  this.damage(){
+    ;
+  }
 }
 
 list.setType(Wall);
