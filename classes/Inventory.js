@@ -1,6 +1,8 @@
 const {Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList} = require('electron-game-util');
 const Entity = require('./Entity.js');
 const ItemEntity = require('./ItemEntity.js');
+const Item = require('./Item.js');
+const ItemStack = require('./ItemStack.js');
 
 let list = new TrackList(SIDE);
 
@@ -55,14 +57,18 @@ class Inventory extends NetworkWrapper(Object, list) {
   }
 
   drop(from,slot,amount=Infinity,x = 0,y = 0){
-    let type = this[from][slot].type;
-    if (type == null) return 0;
-    let count = Math.min(this[from][slot].count,amount);
-    if (count == 0) return 0;
-    this[from][slot].count -= count;
-    if(this[from][slot].count <= 0) this[from][slot].type = null;
-    new ItemEntity({type: type,count,x,y,pickupDelay:100});
-    return count;
+    // let type = this[from][slot].type;
+    // if (type == null) return 0;
+    // let count = Math.min(this[from][slot].count,amount);
+    // if (count == 0) return 0;
+    // this[from][slot].count -= count;
+    // if(this[from][slot].count <= 0) this[from][slot].type = null;
+    // new ItemEntity({type: type,count,x,y,pickupDelay:100});
+    // return count;
+    let item = this[from][slot].split(amount<this[from][slot].count?amount:this[from][slot].count);
+    if (this[from][slot].count <= 0) this[from][slot] = null;
+    new ItemEntity({x,y,pickupDelay: 100, ...item});
+    return item.count;
   }
 
   removeItemEntity(from,slot,amount){
@@ -113,29 +119,24 @@ class Inventory extends NetworkWrapper(Object, list) {
     if (amount == 0){console.log('Error in amount');return 0;}
     if(type == null) {console.log('Error in type');return 0;}
     if(!['any','hotbar','inventory'].includes(to)) {console.log('Error in to');return 0;}
+    let item = Item.get(type);
+    if (!item) throw new Error("Inventory: Attempted to add invalid item of type " + type + " to the inventory.");
+    let maxStack = item.maxStack;
     switch(to){
       case 'any':
         for(let i = 0; i < this.hotbarSize; i ++){
-          if(this.hotbar[i].count > 99 || (this.hotbar[i].type != null && this.hotbar[i].type != type)) continue;
+          if(this.hotbar[i] && (this.hotbar[i].count > maxStack || this.hotbar[i].type != type)) continue;
+          if (!this.hotbar[i]) this.hotbar[i] = new ItemStack(type, 0);
           let item = this.hotbar[i];
-          let toAdd = Math.min(amount,99 - item.count);
-          if (item.type == null){
-            item.type = type;
-          }
-          item.count += toAdd;
-          amount -= toAdd;
+          amount -= item.add(amount);
           if (amount <= 0) break;
         }
         if (amount <= 0) return total;
         for (let i = 0; i < this.size; i ++){
-          if(this.list[i].count > 99 || (this.list[i].type != null && this.list[i].type != type)) continue;
+          if(this.list[i] && (this.list[i].count > maxStack || this.list[i].type != type)) continue;
+          if (!this.list[i]) this.list[i] = new ItemStack(type, 0);
           let item = this.list[i];
-          let toAdd = Math.min(amount,99 - item.count);
-          if (item.type == null){
-            item.type = type;
-          }
-          item.count += toAdd;
-          amount -= toAdd;
+          amount -= item.add(amount);
           if (amount <= 0) break;
         }
         if (amount <= 0) return total;
@@ -144,25 +145,17 @@ class Inventory extends NetworkWrapper(Object, list) {
 
       case 'hotbar':
         if(typeof slot != 'undefined'){
-          if(this.hotbar[slot].count > 99 || (this.hotbar[slot].type != null && this.hotbar[slot].type != type)) return 0;
+          if(this.hotbar[slot] && (this.hotbar[slot].count > maxStack || this.hotbar[slot].type != type)) return 0;
+          if (!this.hotbar[slot]) this.hotbar[slot] = new ItemStack(type, 0);
           let item = this.hotbar[slot];
-          let toAdd = Math.min(amount,99 - item.count);
-          if (item.type == null){
-            item.type = type;
-          }
-          item.count += toAdd;
-          amount -= toAdd;
+          amount -= item.add(amount);
           return total - amount;
         }
         for(let i = 0; i < this.hotbarSize; i ++){
-          if(this.hotbar[i].count > 99 || (this.hotbar[i].type != null && this.hotbar[i].type != type)) continue;
+          if(this.hotbar[i] && (this.hotbar[i].count > maxStack || this.hotbar[i].type != type)) continue;
+          if(!this.hotbar[i]) this.hotbar[i] = new ItemStack(type, 0);
           let item = this.hotbar[i];
-          let toAdd = Math.min(amount,99 - item.count);
-          if (item.type == null){
-            item.type = type;
-          }
-          item.count += toAdd;
-          amount -= toAdd;
+          amount -= item.add(amount);
           if (amount <= 0) break;
         }
         if (amount <= 0) return total;
@@ -171,25 +164,17 @@ class Inventory extends NetworkWrapper(Object, list) {
 
       case 'inventory':
         if(typeof slot != 'undefined'){
-          if(this.hotbar[slot].count > 99 || (this.hotbar[slot].type != null && this.hotbar[slot].type != type)) return 0;
-          let item = this.hotbar[slot];
-          let toAdd = Math.min(amount,99 - item.count);
-          if (item.type == null){
-            item.type = type;
-          }
-          item.count += toAdd;
-          amount -= toAdd;
+          if(this.list[slot] && (this.list[slot].count > maxStack || this.list[slot].type != type)) return 0;
+          if(!this.list[slot]) this.list[slot] = new ItemStack(type, 0);
+          let item = this.list[slot];
+          amount -= item.add(amount);
           return total - amount;
         }
         for (let i = 0; i < this.size; i ++){
-          if(this.list[i].count > 99 || (this.list[i].type != null && this.list[i].type != type)) continue;
+          if(this.list[i] && (this.list[i].count > maxStack || this.list[i].type != type)) continue;
+          if(!this.list[i]) this.list[i] = new ItemStack(type, 0);
           let item = this.list[i];
-          let toAdd = Math.min(amount,99 - item.count);
-          if (item.type == null){
-            item.type = type;
-          }
-          item.count += toAdd;
-          amount -= toAdd;
+          amount -= item.add(amount);
           if (amount <= 0) break;
         }
         if (amount <= 0) return total;
@@ -200,16 +185,22 @@ class Inventory extends NetworkWrapper(Object, list) {
 
   set(to,slot,amount,type){
     if(!['hotbar','inventory'].includes(to) || slot > this[to=='inventory'?'list':to].length-1) return false;
-    this[to=='inventory'?'list':to][slot] = {type: type?type:this[to=='inventory'?'list':to][slot].type, count: Math.min(99,Math.max(0,amount))};
+    // this[to=='inventory'?'list':to][slot] = {type: type?type:this[to=='inventory'?'list':to][slot].type, count: Math.min(99,Math.max(0,amount))};
+    if (type) {
+
+      this[to=='inventory'?'list':to][slot] = new ItemStack(type, amount);
+    } else {
+      this[to=='inventory'?'list':to][slot].set(amount);
+    }
     return true;
   }
 
   clear(){
     for (let i = 0; i < this.size;i++){
-      this.list[i] = {count: 0, item: null};
+      this.list[i] = null;
     }
     for (let i = 0; i < this.hotbarSize;i++){
-      this.hotbar[i] = {count: 0, item: null};
+      this.hotbar[i] = null;
     }
   }
 }

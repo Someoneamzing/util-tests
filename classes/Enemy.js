@@ -17,7 +17,8 @@ class Enemy extends NetworkWrapper(CollisionGroup(Entity, 'Enemy'),list) {
     this.state = 'wander';
   }
 
-  show(gc){
+  show(gc, world){
+    if (world.netID != this.world.netID) return;
     switch(this.state){
       case 'wander':
         gc.fill(230, 230, 230);
@@ -34,10 +35,10 @@ class Enemy extends NetworkWrapper(CollisionGroup(Entity, 'Enemy'),list) {
         break;
     }
     gc.rect(this.x, this.y, this.w, this.h);
-    gc.fill('red');
+    gc.fill(HEALTH_BG_COLOUR);
     gc.stroke('grey');
     gc.rect(this.x, this.y - this.h/2 - 10, 32, 5);
-    gc.fill('green');
+    gc.fill(HEALTH_COLOUR);
     gc.noStroke();
     gc.cornerRect(this.x - 16, this.y - this.h/2 - 12.5, (this.health/this.maxHealth) * 32, 5);
   }

@@ -5,11 +5,11 @@ let list = new TrackList(SIDE, false);
 
 class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
   constructor(opts = {}){
-    let {x = 0,y = 0,w = 32,h = 32,world = World.list.get('main')} = opts;
+    let {x = 0,y = 0,w = 32,h = 32,world = 'main'} = opts;
     super(opts,x,y,w,h);
     this.hsp = 0;
     this.vsp = 0;
-    this.world = world;
+    this.world = World.list.get(world);
     this.solid = opts.solid || false;
     this.maxHealth = typeof opts.maxHealth != "undefined" ? opts.maxHealth : 20;
     this.health = typeof opts.health != "undefined" ? opts.health : this.maxHealth;
@@ -61,6 +61,7 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
         this.maxHealth = pack.maxHealth;
         this.hsp = pack.hsp;
         this.vsp = pack.vsp;
+        this.world = World.list.get(pack.world);
     }
   }
 
@@ -74,6 +75,7 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
     pack.maxHealth = this.maxHealth;
     pack.vsp = this.vsp;
     pack.hsp = this.hsp;
+    pack.world = this.world.netID;
     return pack;
   }
 
@@ -87,6 +89,7 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
     pack.maxHealth = this.maxHealth;
     pack.vsp = this.vsp;
     pack.hsp = this.hsp;
+    pack.world = this.world.netID;
     return pack;
   }
 

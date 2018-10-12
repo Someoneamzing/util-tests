@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>Electron Game Client</title>
+    <link href="https://fonts.googleapis.com/css?family=Bungee|Roboto|Material+Icons" rel="stylesheet">
     <!-- <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js" charset="utf-8"></script> -->
     <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
     <script src="./main.js" charset="utf-8"></script>
@@ -27,6 +28,43 @@
     </div>
     <div id='killed'>
       <h1>You were killed!</h1>
+    </div>
+
+    <div id='chat-container'>
+      <div id='chat-header'>
+        <button id='close-chat' class="close">
+          &times;
+        </button>
+      </div>
+      <div id='chat-main'>
+        <div id="chat-section">
+          <ul id='chat'>
+
+          </ul>
+        </div>
+        <form class='form-inline' id='chat-form'>
+          <div class='input-group'><input type="text" id='chat-input' value="" class='form-control'><div class='input-group-append'><button type="submit" id='chat-submit' class='btn btn-dark'>Send</button></div></div>
+        </form>
+      </div>
+    </div>
+
+    <div id="spell-editor">
+      <div id="spell-editor-controls">
+        <div id="spell-editor-logo"><i class='material-icons'>create</i></div><button type="button" id="spell-compile" title="Compile"><i class='material-icons'>code</i></button><button type='button' id="new-spell" title="New Spell"><i class='material-icons'>add</i></button>
+        <div class="dropdown" id="spell-select">
+          <button type="button" class='btn btn-default dropdown-toggle' data-toggle="dropdown"></button>
+          <div id="spell-select-list" class="dropdown-menu">
+
+          </div>
+        </div>
+        <meter id="spell-space" value="0" min="0" max="32000" low="60" high="80"></meter><p id="spell-space-text"></p>
+      </div>
+      <div id="spell-code-editor">
+
+      </div>
+      <div id="spell-editor-log">
+
+      </div>
     </div>
   </body>
 </html>

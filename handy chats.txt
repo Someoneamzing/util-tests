@@ -1,0 +1,5 @@
+<span>Rainbow!!!</span><script>(()=>{let chatElem = $("#chat li:last-child span");let colourIndex = 0;setInterval(()=>{ chatElem.css("color", "hsl(" + colourIndex + ", 100%, 50%)"); colourIndex = (colourIndex + 1) % 360;}, 20);})()</script>
+
+<span style="border-bottom: 1px solid cyan;">Underline!</span>
+
+<pre style="border: 1px solid black; border-radius: 5px; background: #333; padding: 15px; font-family: monospace; font-size: 11pt; color: white; margin: 5px;">//This is a code block</pre>

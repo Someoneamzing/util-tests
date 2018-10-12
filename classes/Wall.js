@@ -9,7 +9,8 @@ class Wall extends NetworkWrapper(CollisionGroup(Entity, 'Wall'),list) {
     this.solid = true;
   }
 
-  show(gc){
+  show(gc, world){
+    if (world.netID != this.world.netID) return;
     gc.fill(179,1);
     gc.stroke(128,1);
     gc.rect(this.x, this.y, this.w, this.h);
@@ -17,7 +18,7 @@ class Wall extends NetworkWrapper(CollisionGroup(Entity, 'Wall'),list) {
     gc.ctx.fillText(this.x + ", " + this.y, this.x, this.y);
   }
 
-  this.damage(){
+  damage(){
     ;
   }
 }

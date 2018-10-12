@@ -1,6 +1,9 @@
+
 html, body {
   padding: 0;
   margin: 0;
+  height: 100%;
+  width: 100%;
 }
 
 #killed {
@@ -71,4 +74,259 @@ html, body {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
+}
+
+#chat-container {
+  position: fixed;
+  margin: 0;
+  padding: 8px;
+  z-index: 1;
+  background: #222;
+  resize: both;
+  height: 300px;
+  width: 400px;
+  border: 1px solid grey;
+  border-radius: 3px;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+#chat-container:hover {
+  opacity: 1;
+  overflow: hidden;
+}
+
+#chat-header {
+  height: 20px;
+  width: calc(100%);
+  padding: 0;
+  margin: 0;
+}
+
+#chat-header .close {
+  padding: 0;
+  margin: 0;
+  margin-top: -5px;
+  color: white;
+  -webkit-user-select: none;
+}
+
+#chat-main {
+  position: relative;
+  width: calc(100%);
+  height: calc(100% - 20px);
+  border: 1px solid grey;
+  border-radius: 3px;
+  margin: 0;
+}
+
+#chat-section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 40px;
+  overflow-y: scroll;
+}
+
+#chat {
+  color: white;
+  list-style: none;
+  /* position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0; */
+  padding: 0;
+  margin: 0;
+}
+
+#chat .chat-msg {
+  width: 100%;
+  padding: 3px;
+}
+
+#chat-form {
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#chat-form .input-group {
+  width: 100%;
+}
+
+#chat .code {
+  border: 1px solid black;
+  border-radius: 5px;
+  background: #333;
+  padding: 15px;
+  font-family: monospace;
+  font-size: 11pt;
+  color: white;
+  margin: 5px;
+  display: block;
+}
+
+.flash {
+  -webkit-animation: flash 3s linear 0s 1;
+}
+
+@-webkit-keyframes flash {
+  0% {background-color: rgba(0,0,0,0);}
+  25% {background-color: #ff8822;}
+  50% {background-color: rgba(0,0,0,0);}
+  75% {background-color: #ff8822;}
+  100% {background-color: rgba(0,0,0,0);}
+
+}
+
+#spell-editor {
+  width: 100vw;
+  height: 340px;
+  background: #333;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+}
+
+#spell-code-editor {
+  width: 70%;
+  height: calc(100% - 40px);
+  position: absolute;
+  top: 40px;
+  left: 0;
+  bottom: 0;
+}
+
+#spell-editor-log {
+  width: 30%;
+  height: calc(100% - 40px);
+  position: absolute;
+  top: 40px;
+  right: 0;
+  bottom: 0;
+  background: black;
+  border-left: 2px solid grey;
+  overflow-y: scroll;
+  overflow-x: auto;
+}
+
+#spell-editor-log::-webkit-scrollbar {
+  width: 6px;
+}
+
+#spell-editor-log::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.3);
+  transition: background 0.3s;
+}
+
+#spell-editor-log::-webkit-scrollbar-track:hover {
+  background: rgba(255,255,255,0.7);
+}
+
+#spell-editor-log::-webkit-scrollbar-thumb {
+  -webkit-appearance: none;
+  background: #ccc;
+  border-radius: 3px;
+  /* width: 80%!important; */
+  box-sizing: border-box;
+}
+
+#spell-editor-log pre {
+  /* width: 100%; */
+  color: white;
+  font-family: monospace;
+  font-size: 12px;
+  overflow-x: visible;
+}
+
+#spell-editor-controls {
+  height: 40px;
+  position: absolute;
+  width: 100vw;
+  top: 0;
+  left: 0;
+  right: 0;
+  color: white;
+  /* border-bottom: 1px solid black; */
+}
+
+#spell-editor-controls > * {
+  display: inline-block;
+  height: 40px;
+  margin: 0;
+  border-right: 1px solid #222;
+}
+
+#spell-editor-controls > button {
+  background: #444;
+  border: none;
+  border-right: 1px solid #222;
+  width: 40px;
+  color: white;
+  vertical-align: middle;
+  padding-top: 5px;
+}
+
+#spell-editor-controls > button:hover {
+  background-color: #555;
+  font-size: 1.1em;
+}
+
+#spell-editor-logo {
+  text-align: center;
+  vertical-align: middle;
+  padding-top: 8px;
+  color: grey;
+}
+
+#spell-space {
+  height: 20px;
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  width: 200px;
+  transform: translate(0,-50%);
+  display: block;
+  background: #343434;
+  border: none;
+  box-shadow: inset 0 2px 5px #222;
+}
+
+#spell-space-text {
+  display: none;
+  height: 20px;
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  width: 200px;
+  transform: translate(0,-50%);
+  color: white;
+  text-align: center;
+  pointer-events: none;
+}
+
+#spell-space:hover~#spell-space-text {
+  display: block;
+}
+
+#spell-space::-webkit-meter-even-less-good-value {
+  background: #ff6666;
+}
+
+#spell-space::-webkit-meter-suboptimum-value {
+  background: #ffff66;
+}
+
+#spell-space::-webkit-meter-optimum-value {
+  background: #66ff66;
+}
+
+#spell-space::-webkit-meter-bar {
+  background: none;
 }

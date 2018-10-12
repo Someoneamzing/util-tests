@@ -10,6 +10,7 @@ class Item extends NetworkWrapper(Object, list) {
     this.name = name;
     this.sprite = sprite;
     this.maxStack = maxStack;
+    Item.map.set(this.name, this.netID);
   }
 
   use(stack, player){
@@ -27,10 +28,17 @@ class Item extends NetworkWrapper(Object, list) {
   static attack(stack, player){
     Item.list.get(stack.type).attack(stack, player);
   }
+
+  static get(name){
+    let id = Item.map.get(name);
+    if (!id) return null;
+    return Item.list.get(id);
+  }
 }
 
 list.setType(Item);
 
 Item.list = list;
+Item.map = new Map();
 
 module.exports = Item;

@@ -6,7 +6,7 @@ let stone = new Item('stone');
 let gold = new Item('gold');
 let sword = new Item('sword');
 sword.attack = (stack, player)=>{
-  
+
   let res = player.world.collisionTree.query(new Circle(player.x, player.y, 40),['Player','Enemy']);
   if (res.status == QueryResult.OK){
     for(let e of res.getGroup('found')){
@@ -16,3 +16,9 @@ sword.attack = (stack, player)=>{
     }
   }
 }
+
+let spell = new Item('spell');
+spell.attack = (stack, player)=>{
+  
+}
+spell.use = spell.attack;

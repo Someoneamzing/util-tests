@@ -52,7 +52,8 @@ class ItemEntity extends NetworkWrapper(CollisionGroup(Entity,'Item'), list) {
     return pack;
   }
 
-  show(gc){
+  show(gc, world){
+    if (world.netID != this.world.netID) return;
     Sprite.get('item-' + this.type).draw(gc, this.x, this.y, 32, 32);
   }
 }
