@@ -7,7 +7,46 @@ const Item = require('./Item.js');
 const World = require('./World.js');
 const Inventory = require('./Inventory.js');
 const ItemStack = require('./ItemStack.js');
-const {VMScript, VM} = require('vm2');
+const fs = require('fs');
+const path = require('path');
+const {VMScript: BrokenScript, VM: OldVM, NodeVM: OldNodeVM} = require('vm2');
+
+class VMScript extends BrokenScript {
+  compile(){
+    delete this._compiled;
+    return super.compile();
+  }
+}
+
+class NodeVM extends OldNodeVM {
+  updateSandbox(sandbox){
+    this.options.sandbox = {...sandbox, ...this.options.sandbox};
+    if (this.options.sandbox) {
+      if ('object' !== typeof this.options.sandbox) {
+        throw new VMError("Sandbox must be object.");
+      }
+
+      for (let name in this.options.sandbox) {
+        this._internal.Contextify.globalValue(this.options.sandbox[name], name);
+      }
+    }
+  }
+}
+
+class VM extends OldVM {
+  updateSandbox(sandbox){
+    this.options.sandbox = {...sandbox, ...this.options.sandbox};
+    if (this.options.sandbox) {
+      if ('object' !== typeof this.options.sandbox) {
+        throw new VMError("Sandbox must be object.");
+      }
+
+      for (let name in this.options.sandbox) {
+        this._internal.Contextify.globalValue(this.options.sandbox[name], name);
+      }
+    }
+  }
+}
 
 let list = new TrackList(SIDE);
 
@@ -21,6 +60,7 @@ class Spell extends NetworkWrapper(Object, list) {
     this.attack = opts.attack||false;
     this.player = null;
     this.name = opts.name||"";
+    this.level = opts.level||"low";
 
     if (SIDE == ConnectionManager.SERVER)Spell.reporter.newSpell(this);
   }
@@ -31,6 +71,7 @@ class Spell extends NetworkWrapper(Object, list) {
     pack.player = this.player;
     pack.attack = this.attack;
     pack.needsRecompile = this.needsRecompile;
+    pack.level = this.level;
     return pack;
   }
 
@@ -40,6 +81,7 @@ class Spell extends NetworkWrapper(Object, list) {
     pack.player = this.player;
     pack.attack = this.attack;
     pack.needsRecompile = this.needsRecompile;
+    pack.level = this.level;
     return pack;
   }
 
@@ -50,6 +92,7 @@ class Spell extends NetworkWrapper(Object, list) {
       this.player = pack.player;
       this.attack = pack.attack;
       this.needsRecompile = pack.needsRecompile;
+      this.level = pack.level;
     }
   }
 
@@ -83,7 +126,19 @@ class Spell extends NetworkWrapper(Object, list) {
         err.name = "CompileError";
         throw err;
       }
-      this.script = new VMScript(this.source,{filename: "UserSpell:" + this.netID});
+      let prefix = "";
+      let suffix = "\n})";
+      switch(this.level){
+        case "low":
+          prefix = "((player, spell, chat)=>{\n";
+          break;
+        case "med":
+          prefix = "((player, spell, chat, Player)=>{\n"
+          break;
+        case "admin":
+          prefix = "((player, spell, chat)=>{\n"
+      }
+      this.script = new VMScript(prefix + this.source + suffix,"UserSpell:" + this.netID);
       this.script.compile();
       this.needsRecompile = false;
       Spell.reporter.log(this, "<span style='color: #0a0'>Compiled Successfully!</span>");
@@ -95,16 +150,35 @@ class Spell extends NetworkWrapper(Object, list) {
   }
 
   execute(sandbox){
+    let spell = this;
+    Spell.reporter.log(this, "Running spell '" + this.name + "'")
     try{
       if (this.needsRecompile) {
         let err = new Error("Spell must be recompiled before execution. The recompile was requested due to " + this.recompReason + ".");
         err.name = "SpellError";
         throw err;
       }
-      sandbox.run(this.script);
+      sandbox.run(this.script, __filename)(require("./Player.js").list.get(this.player), this, (msg)=>{Spell.reporter.log(spell, "CHAT: " + msg);Command.call("code " + msg, require("./Player.js").list.get(spell.player))}, require("./Player.js"));
     } catch (err) {
       Spell.reporter.error(this, err.name + ": " + err.message);
       this.needsRecompile = true;
+    }
+  }
+
+  async save(id){
+    try {
+      try {
+        await fs.promises.mkdir('./user-scripts/' + id);
+      } catch (err) {
+        if (err.code != "EEXIST") throw err;
+      }
+      let fd = await fs.promises.open('./user-scripts/' + id + "/" + this.name + ".js", "w");
+      await fs.promises.writeFile(fd, this.source, {encoding: 'utf-8', flag:"w"});
+      fd.close();
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
     }
   }
 }
@@ -140,16 +214,19 @@ if (SIDE == ConnectionManager.SERVER){
 
   class SpellSandboxer {
     constructor(){
+      let self = this;
       this._currPlayer = null;
       this._currSpell = null;
       this.envs = [];
       this.envs[0] = new VM({
         timeout: 1000,
-        sandbox: {console: {
-          log: (...rest)=>Spell.reporter.log(this.currSpell, ...rest),
-          warn: (...rest)=>Spell.reporter.warn(this.currSpell, ...rest),
-          error: (...rest)=>Spell.reporter.error(this.currSpell, ...rest)
-        }}
+        sandbox: {
+          console: {
+            log: (...rest)=>Spell.reporter.log(this.currSpell, ...rest),
+            warn: (...rest)=>Spell.reporter.warn(this.currSpell, ...rest),
+            error: (...rest)=>Spell.reporter.error(this.currSpell, ...rest)
+          }
+        }
       })
       this.envs[1] = new VM({
         timeout: 1000,
@@ -158,21 +235,23 @@ if (SIDE == ConnectionManager.SERVER){
             log: (...rest)=>Spell.reporter.log(this.currSpell, ...rest),
             warn: (...rest)=>Spell.reporter.warn(this.currSpell, ...rest),
             error: (...rest)=>Spell.reporter.error(this.currSpell, ...rest)
-          },
-          player: this.currPlayer
+          }
         }
       })
-      this.envs["admin"] = new VM({
-        timeout:100000,
+      this.envs["admin"] = new NodeVM({
+        console: "redirect",
         sandbox: {
-          console: {
-            log: (...rest)=>Spell.reporter.log(this.currSpell, ...rest),
-            warn: (...rest)=>Spell.reporter.warn(this.currSpell, ...rest),
-            error: (...rest)=>Spell.reporter.error(this.currSpell, ...rest)
-          },
-          spell: this.currSpell,
-          Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList, EventEmitter, Entity, Player, ItemEntity, Item, World, Inventory, ItemStack}
+          test: "ADMIN"
+        },
+        require: {
+          external: true,
+          builtin: ["*"]
+        }
       })
+      this.envs["admin"].on('console.log',(...rest)=>Spell.reporter.log(this.currSpell, ...rest))
+      this.envs["admin"].on('console.info',(...rest)=>Spell.reporter.log(this.currSpell, ...rest))
+      this.envs["admin"].on('console.warn',(...rest)=>Spell.reporter.warn(this.currSpell, ...rest))
+      this.envs["admin"].on('console.error',(...rest)=>Spell.reporter.error(this.currSpell, ...rest))
     }
 
     get currPlayer(){
@@ -183,20 +262,15 @@ if (SIDE == ConnectionManager.SERVER){
       return this._currSpell;
     }
 
-    runLow(spell){
+    run(spell){
       this._currSpell = spell;
       spell.execute(this.envs[0])
     }
 
-    runMed(spell){
-      this._currSpell = spell;
-      this._currPlayer = require('./Player.js').list.get(spell.player);
-      spell.execute(this.envs[1])
-    }
-
     runAdmin(spell){
       this._currSpell = spell;
-      spell.execute(this.envs['admin']);
+
+      spell.execute(this.envs['admin'],"admin");
     }
   }
 

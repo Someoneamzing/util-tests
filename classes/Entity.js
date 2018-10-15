@@ -9,10 +9,14 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
     super(opts,x,y,w,h);
     this.hsp = 0;
     this.vsp = 0;
-    this.world = World.list.get(world);
+    this.worldID = world;
     this.solid = opts.solid || false;
     this.maxHealth = typeof opts.maxHealth != "undefined" ? opts.maxHealth : 20;
     this.health = typeof opts.health != "undefined" ? opts.health : this.maxHealth;
+  }
+
+  get world(){
+    return World.list.get(this.worldID);
   }
 
   damage(amount, source){
@@ -61,7 +65,7 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
         this.maxHealth = pack.maxHealth;
         this.hsp = pack.hsp;
         this.vsp = pack.vsp;
-        this.world = World.list.get(pack.world);
+        this.worldID = pack.world;
     }
   }
 

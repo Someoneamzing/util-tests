@@ -91,6 +91,12 @@ html, body {
   transition: opacity 0.3s;
 }
 
+#chat-container:active::-webkit-resizer {
+  width: 150%;
+  height: 150%;
+  background: red;
+}
+
 #chat-container:hover {
   opacity: 1;
   overflow: hidden;
@@ -214,19 +220,18 @@ html, body {
   border-left: 2px solid grey;
   overflow-y: scroll;
   overflow-x: auto;
+  line-height: 14px;
 }
 
 #spell-editor-log::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
+  height: 4px;
+  background: none;
 }
 
 #spell-editor-log::-webkit-scrollbar-track {
-  background: rgba(255,255,255,0.3);
-  transition: background 0.3s;
-}
-
-#spell-editor-log::-webkit-scrollbar-track:hover {
-  background: rgba(255,255,255,0.7);
+  background: none;
+  transition: opacity 0.3s;
 }
 
 #spell-editor-log::-webkit-scrollbar-thumb {
@@ -237,12 +242,21 @@ html, body {
   box-sizing: border-box;
 }
 
+#spell-editor-log::-webkit-scrollbar-thumb:active {
+  border-radius: 0;
+  border: 2px solid #ccc;
+}
+
 #spell-editor-log pre {
-  /* width: 100%; */
+  min-width: 100%;
+  display: inline-block;
   color: white;
   font-family: monospace;
   font-size: 12px;
   overflow-x: visible;
+  padding: 0;
+  line-height: 13px;
+  margin: 0;
 }
 
 #spell-editor-controls {
@@ -329,4 +343,135 @@ html, body {
 
 #spell-space::-webkit-meter-bar {
   background: none;
+}
+
+#spell-select {
+  /* vertical-align: middle; */
+  width: 204px;
+  padding-left: 2px;
+}
+
+#spell-select > button {
+  width: 200px;
+  height: 30px;
+  vertical-align: middle;
+  padding-top: 2px;
+}
+
+#spell-select > button::after {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translate(0, -150%);
+}
+
+#tutorial-container {
+  position: fixed;
+  margin: 0;
+  padding: 8px;
+  z-index: 1;
+  background: #222;
+  resize: both;
+  height: 300px;
+  width: 400px;
+  border: 1px solid grey;
+  border-radius: 3px;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+#tutorial-container:active::-webkit-resizer {
+  width: 150%;
+  height: 150%;
+  background: red;
+}
+
+#tutorial-container:hover {
+  opacity: 1;
+  overflow: hidden;
+}
+
+#tutorial-header {
+  height: 20px;
+  width: calc(100%);
+  padding: 0;
+  margin: 0;
+}
+
+#tutorial-header .close {
+  padding: 0;
+  margin: 0;
+  margin-top: -5px;
+  color: white;
+  -webkit-user-select: none;
+}
+
+#tutorial-title {
+  width: calc(100% - 20px);
+  margin: 0!important;
+  display: inline-block;
+  box-sizing: border-box;
+  -webkit-margin-after: 0;
+}
+
+#tutorial-main {
+  position: relative;
+  width: calc(100%);
+  height: calc(100% - 20px);
+  border: 1px solid grey;
+  border-radius: 3px;
+  margin: 0;
+  background-color: white;
+}
+
+#tutorial-tab-view .code {
+  border: 1px solid black;
+  border-radius: 5px;
+  background: #333;
+  padding: 15px;
+  font-family: monospace;
+  font-size: 11pt;
+  color: white;
+  margin: 5px;
+  display: block;
+}
+
+#tutorial-tabs {
+  height: 42px;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#tutorial-tab-view,#tutorial-tab-contents {
+  width: 100%;
+  height: calc(100% - 42px);
+  position: absolute;
+  top: 42px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#notifier {
+  pointer-events: none;
+  user-select: none;
+  width: 4in;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+}
+
+#notifier .alert {
+  pointer-events: initial;
+  word-wrap: normal;
+}
+
+#tutorial-tab-view {
+  padding: 15px 0.3in 15px 0.3in;
 }

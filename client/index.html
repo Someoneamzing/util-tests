@@ -3,20 +3,31 @@
   <head>
     <meta charset="utf-8">
     <title>Electron Game Client</title>
-    <link href="https://fonts.googleapis.com/css?family=Bungee|Roboto|Material+Icons" rel="stylesheet">
-    <!-- <script src="../node_modules/bootstrap/dist/js/bootstrap.min.js" charset="utf-8"></script> -->
-    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Bungee|Roboto|Material+Icons" rel="stylesheet" />
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css" />
     <script src="./main.js" charset="utf-8"></script>
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <div id='front-screen'>
-      <form id='login' class='shadow'>
+      <form id='login' class='shadow' novalidate>
         <div class="form-group">
-          <input type="text" id="user" value="" placeholder="Username" class="form-control">
+          <input type="text" id="user" value="" placeholder="Username" class="form-control" pattern="^\w+$" required>
+          <div class="invalid-feedback" id='invalid-user-feedback'>
+
+          </div>
+          <div class="valid-feedback" id='valid-user-feedback'>
+
+          </div>
         </div>
         <div class="form-group">
-          <input type="password" id="pass" value="" placeholder="Password" class="form-control">
+          <input type="password" id="pass" value="" placeholder="Password" class="form-control" pattern="^[\w !@#\$%\^&\*]{8,}$" required>
+          <div class="invalid-feedback" id='invalid-pass-feedback'>
+
+          </div>
+          <div class="valid-feedback"  id='valid-pass-feedback'>
+
+          </div>
         </div>
         <div class="btn-group">
           <button type="submit" id="login-btn" class='btn btn-primary'>Login</button><button type="button" id="sign-up" class='btn'>Sign Up</button>
@@ -50,13 +61,12 @@
 
     <div id="spell-editor">
       <div id="spell-editor-controls">
-        <div id="spell-editor-logo"><i class='material-icons'>create</i></div><button type="button" id="spell-compile" title="Compile"><i class='material-icons'>code</i></button><button type='button' id="new-spell" title="New Spell"><i class='material-icons'>add</i></button>
-        <div class="dropdown" id="spell-select">
-          <button type="button" class='btn btn-default dropdown-toggle' data-toggle="dropdown"></button>
+        <div id="spell-editor-logo"><i class='material-icons'>create</i></div><button type="button" id="spell-compile" title="Compile"><i class='material-icons'>code</i></button><button type='button' id="run-spell" title="Run Spell"><i class='material-icons'>play_arrow</i></button><button type='button' id="new-spell" title="New Spell" data-toggle='modal' data-target='#spell-name-modal'><i class='material-icons'>add</i></button><div class="dropdown" id="spell-select">
+          <button type="button" class='btn btn-default btn-small dropdown-toggle' data-toggle="dropdown"></button>
           <div id="spell-select-list" class="dropdown-menu">
 
           </div>
-        </div>
+        </div><button type="button" id="spell-help" title="Help"><i class='material-icons'>help</i></button>
         <meter id="spell-space" value="0" min="0" max="32000" low="60" high="80"></meter><p id="spell-space-text"></p>
       </div>
       <div id="spell-code-editor">
@@ -65,6 +75,57 @@
       <div id="spell-editor-log">
 
       </div>
+    </div>
+
+    <div id="spell-name-modal" class='modal'>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-body bg-dark text-light">
+            <form id="spell-name-form" novalidate>
+              <label for="spell-name-input"><small>Enter the name for the new spell.</small></label>
+              <input type="text" id="spell-name-input" value="" class='form-control form-control-sm' pattern="^\w+$" title="A name for the spell consisting of only alpha-numeric characters or an underscore" required>
+              <div class="invalid-feedback">
+                Please ensure that the name only consists of letters, numbers and underscores. <strong>[A-Z,a-z,0-9,_]</strong>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tutorial-container" style="width: 800px; height: 600px;">
+      <div id='tutorial-header'>
+        <h3 id='tutorial-title'>Tutorial</h3>
+        <button id='close-tutorial' class="close">
+          &times;
+        </button>
+      </div>
+      <div id='tutorial-main'>
+        <ul class='nav nav-tabs' id="tutorial-tabs">
+          <li class="nav-item">
+            <a class='nav-link active' id="tutorial-contents-link" href="#tutorial-tab-contents" data-toggle='tab'>Contents</a>
+          </li>
+          <li class="nav-item">
+            <a class='nav-link' id="tutorial-view-link" href="#tutorial-tab-view" data-toggle='tab'>View</a>
+          </li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="tutorial-tab-contents">
+            <ul id="tutorial-contents-list" class='nav flex-column'>
+
+            </ul>
+          </div>
+          <div class="tab-pane fade" id="tutorial-tab-view">
+
+          </div>
+        </div>
+        <div id="tutorial-section">
+        </div>
+      </div>
+    </div>
+
+    <div id="notifier">
+
     </div>
   </body>
 </html>

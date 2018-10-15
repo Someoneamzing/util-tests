@@ -1,0 +1,124 @@
+init Client
+connect Client
+hide game ui
+show login ui
+spec notify function
+init ConnectionManager
+register tracklists:
+  Entity
+  Wall
+  Enemy
+  Player
+  World
+  Inventory
+  ItemEntity
+  Teleporter
+  Spell
+wait for signup  << \/(LEAVE THESE TWO ALONE)\/
+wait for login
+when logged in load sprites
+when done start
+init GameLoop
+init GameCanvas
+init ControlInterface
+set damageTimer = 0
+send Loaded
+
+
+START SERVER -----
+SERVER: init user database
+SERVER: init Server
+SERVER: GameLoop
+SERVER: init ConnectionManager
+SERVER: register TrackLists {
+  connection.addTrackList(Entity.list);
+  connection.addTrackList(Wall.list);
+  connection.addTrackList(Player.list);
+  connection.addTrackList(World.list);
+  connection.addTrackList(Enemy.list);
+  connection.addTrackList(Inventory.list);
+  connection.addTrackList(ItemEntity.list);
+  connection.addTrackList(Teleporter.list);
+  connection.addTrackList(Spell.list);
+}
+SERVER: load items.js
+SERVER: load commands.js
+SERVER: WAIT FOR START BUTTON
+SERVER: init Worlds {
+  new World({netID: 'main', displayName: 'Homeworld'});
+  new World({netID: 'alien', displayName: 'Martian'});
+}
+SERVER: listen to spell logs,warns,errors and binding-updates {
+  Spell.reporter.on('error', (stack, spell, ...rest)=>{
+    console.log(spell);
+    connection.connections[Player.list.get(spell.player).socketID].socket.emit('spell-log', '<span style="color: red;">'.concat(...rest) + " in spell: " + spell.name + "\n\n" + stack + "</span>");
+  })
+
+  Spell.reporter.on('warning', (spell, ...rest)=>{
+    console.log(spell);
+    connection.connections[Player.list.get(spell.player).socketID].socket.emit('spell-log', '<span style="color: #ff7;">'.concat(...rest) + "</span>");
+  })
+
+  Spell.reporter.on('log', (spell, ...rest)=>{
+    console.log(spell);
+    connection.connections[Player.list.get(spell.player).socketID].socket.emit('spell-log', ''.concat(...rest));
+  })
+
+  Spell.reporter.on('binding-change', (spell,old)=>{
+    if (old && Player.list.get(old)) connection.connections[Player.list.get(old).socketID].socket.emit('remove-spell', spell.netID);
+    connection.connections[Player.list.get(spell.player).socketID].socket.emit('add-spell', spell.netID);
+  })
+}
+SERVER: init database collections (LEAVE ALONE)
+SERVER: open server
+SERVER: begin the loop
+SERVER: wait for connections
+CLIENT: init Client
+CLIENT: hide game ui
+CLIENT: show login ui
+CLIENT: spec notify
+CLIENT: init ConnectionManager
+CLIENT: register TrackLists {
+  connection.addTrackList(Entity.list);
+  connection.addTrackList(Wall.list);
+  connection.addTrackList(Enemy.list);
+  connection.addTrackList(Player.list);
+  connection.addTrackList(World.list);
+  connection.addTrackList(Inventory.list);
+  connection.addTrackList(ItemEntity.list);
+  connection.addTrackList(Teleporter.list);
+  connection.addTrackList(Spell.list);
+}
+CLIENT: Wait for Signup
+CLIENT: Wait for login.
+CLIENT: Connect
+SERVER: wait for signup
+SERVER: wait for login
+CLIENT: signup
+SERVER: add user if username is not taken
+SERVER: signup-success
+CLIENT: notify success
+CLIENT: Login
+SERVER: IF user exists and password matches login
+SERVER: successfulLogin
+SERVER: wait for loaded
+CLIENT: load sprites.js
+CLIENT: When done start
+CLIENT: init GameLoop
+CLIENT: init GameCanvas
+CLIENT: init ControlInterface
+CLIENT: set damageTimer to 0
+CLIENT: wait for connected-to-world
+CLIENT: set GameLoop loop
+CLIENT: listen for resizes to resize GameCanvas
+CLIENT: loaded
+SERVER: init new Player
+SERVER:
+
+
+
+
+
+===========================
+CLIENT: Login
+SERVER: 

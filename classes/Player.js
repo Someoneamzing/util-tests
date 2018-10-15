@@ -31,6 +31,7 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
     this.walkSpeed = 3;
 
     Player.nameMap[this.name] = this.netID;
+    Player.socketMap[this.socketID] = this.netID;
   }
 
   get inventory(){
@@ -41,11 +42,11 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
     this.x = 0;
     this.y = 0;
     this.health = this.maxHealth;
-    connection.server.send('player-killed', {killer: killer.getInitPkt()}, this.socketID);
+    connection.server.io.to(this.socketID).emit('player-killed', {killer: killer.getInitPkt()});
   }
 
   useSpell(id, level){
-    if (this.spells.includes(id)) Spell.sandbox[level?{"med": "runMed", "low": "runLow", "admin": "runAdmin"}[level]:"runLow"](Spell.list.get(id));
+    if (this.spells.includes(id)) Spell.sandbox[level == 'admin'?"runAdmin":"run"](Spell.list.get(id));
   }
 
   damage(amount, source){
@@ -126,6 +127,10 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
 
   remove(){
     delete Player.nameMap[this.name];
+    delete Player.socketMap[this.socketID];
+    // for (let id in this.spells) {
+    //   Spell.list.get(id).save(this.name);
+    // }
     super.remove();
   }
 
@@ -136,9 +141,15 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
   static getByName(name){
     return Player.nameMap[name]?Player.list.get(Player.nameMap[name]):null;
   }
+
+  static getBySocket(socket){
+    return Player.socketMap[socket.id]?Player.list.get(Player.socketMap[socket.id]):null;
+  }
 }
 
 Player.nameMap = {};
+
+Player.socketMap = {};
 
 Player.permissions = {};
 

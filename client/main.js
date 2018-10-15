@@ -2,12 +2,25 @@ const {Client, Sprite, ConnectionManager, ControlInterface, TrackList, NetworkWr
 global.SIDE = ConnectionManager.CLIENT;
 require('../config.js');
 const path = require('path')
+const {dialog} = require('electron');
+const fs = require('fs')
 let host = decodeURIComponent(location.hash.slice(1));
 require('../ace-src-noconflict/ace.js');
 ace.config.set('basePath', path.join(__dirname, "../ace-src-noconflict"))
 window.editor = null;
 window.currentSpell = null;
 
+global.markTime = (event, dir)=>{
+  if (!DO_CONNECTION_LOG) return;
+  let date = new Date().toISOString();
+  console.log(date);
+  date = date.slice(date.indexOf("T"), date.indexOf("Z"));
+
+  // console.log("( " + date + " ) " + dir + "'" + event + "'")
+  fs.writeFileSync(path.join(__dirname, '../connection-log.txt'), "CLIENT: ( " + date + " ) " + dir + "'" + event + "'\n", {encoding: "utf-8", flag: "as"});
+}
+
+global.$ = require('jquery');
 require('bootstrap');
 
 const Entity = require('../classes/Entity.js');
@@ -19,15 +32,33 @@ const Inventory = require('../classes/Inventory.js');
 const ItemEntity = require('../classes/ItemEntity.js');
 const Teleporter = require('../classes/Teleporter.js');
 const Spell = require('../classes/Spell.js');
-const {jsParser, jsonParser} = require('../classes/Syntax.js');
+const {jsParser, jsonParser, mdParser} = require('../classes/Syntax.js');
 
 let client;
 
+let playerID = null;
+let myPlayer = null;
+
 function ready(){
+
+  client = new Client('http://' + host, 2000);
+
   $('#killed').hide();
   $('#load-container').hide();
   $("#chat-container").hide();
-  client = new Client('http://' + host, 2000);
+  $("#tutorial-container").hide();
+  $("#spell-editor").hide();
+
+  window.notify = (level, title, msg, timeout = 5000)=>{
+    let elem = $(
+      "<div class='alert alert-" + level + " alert-dismissible fade show'>" +
+        "<h5 class='alert-heading'>" + title + "</h5>" +
+        "<hr><p class='mb-0'>" + msg + "</p>" +
+        "<button type='button' class='close' data-dismiss='alert'>&times;</button>" +
+      "</div>"
+    ).slideDown('fast').delay(timeout).slideUp('slow', function(){$(this).remove()});
+    $("#notifier").prepend(elem)
+  }
 
   connection = new ConnectionManager(SIDE, client);
 
@@ -42,28 +73,98 @@ function ready(){
   connection.addTrackList(Spell.list);
 
   $('#login').submit((e)=>{
+    $("#invalid-user-feedback").text("")
+    $("#valid-user-feedback").text("")
+    $("#invalid-pass-feedback").text("")
+    $("#valid-pass-feedback").text("")
     e.preventDefault();
-    require('./sprites.js');
+    let name = $("#user").val();
+    let pass = $("#pass").val();
+    if ($("#login").get(0).checkValidity()){
+      markTime('login', 'send');
+      client.send('login', {name, pass}, (suc, res)=>{
+        if (!suc){
+          $("#user").get(0).setCustomValidity("Incorrect Username");
+          $("#invalid-user-feedback").text(res=="Invalid Username"?"The provided username does not macth any existing accounts.":"")
+          $("#valid-user-feedback").text("");
+          $("pass").val("");
+          $("#pass").get(0).setCustomValidity("Incorrect Password");
+          $("#invalid-pass-feedback").text(res=="Invalid Password"?"Incorrect password.":"")
+          $("#valid-pass-feedback").text("");
+          $("#login").addClass('was-validated');
+        } else {
+          $("#login").removeClass('was-validated');
+          load();
+        }
+      });
+    } else {
+      $("#invalid-user-feedback").text($("#user").get(0).checkValidity()?"":"The provided username does not match requirements. Usernames must only contain letters, numbers and underscores.")
+      $("#valid-user-feedback").text("");
+      $("#invalid-pass-feedback").text($("#pass").get(0).checkValidity()?"":"The provided password does not match requirements. Passwords must only contain letters, numbers, underscores, and any of these symbols: [!,@,#,$,%,^,&,*], and must be at least 8 characters long.")
+      $("#valid-pass-feedback").text("");
+      $("#login").addClass('was-validated');
+    }
 
-    Sprite.loadAll($('#load')).then(start);
   })
+
+  $("#sign-up").click((e)=>{
+    $("#invalid-user-feedback").text("")
+    $("#valid-user-feedback").text("")
+    $("#invalid-pass-feedback").text("")
+    $("#valid-pass-feedback").text("")
+    e.preventDefault();
+    let name = $("#user").val();
+    let pass = $("#pass").val();
+    if ($("#login").get(0).checkValidity()){
+      markTime('signup', 'send');
+      client.send('signup', {name, pass}, (suc, res)=>{
+        if (!suc) {
+          $("#invalid-user-feedback").text(res == "Username Taken"?"The provided username hs been taken. Please select another.":"")
+          $("#valid-user-feedback").text("");
+          $("#invalid-pass-feedback").text("")
+          $("#valid-pass-feedback").text("");
+          $("#login").addClass('was-validated');
+        } else {
+          notify('success', "Signup Successful", "You can now log in with your new account!", 3000);
+        }
+      })
+    } else {
+      $("#invalid-user-feedback").text($("#user").get(0).checkValidity()?"":"The provided username does not match requirements. Usernames must only contain letters, numbers and underscores.")
+      $("#valid-user-feedback").text("");
+      $("#invalid-pass-feedback").text($("#pass").get(0).checkValidity()?"":"The provided password does not match requirements. Passwords must only contain letters, numbers, underscores, and any of these symbols: [!,@,#,$,%,^,&,*], and must be at least 8 characters long.")
+      $("#valid-pass-feedback").text("");
+      $("#login").addClass('was-validated');
+    }
+  })
+  client.connect();
+}
+
+function load(){
+  require('./sprites.js');
+  Sprite.loadAll($('#load')).then(start);
 }
 
 function start(){
-  client.connect();
+
 
   let loop = new GameLoop('main', 1000/60);
   let gc = new GameCanvas({full: true});
-  let playerID = null;
-  let myPlayer = null;
+
   let controls = new ControlInterface(gc, client);
   let damageTimer = 0;
 
 
-  client.on('connected-to-world', (netID)=>{
+
+  markTime('connected-to-server', 'on');
+  client.on('connected-to-server', (netID, res)=>{
     console.log('In World');
     $('#front-screen').hide();
     $('#chat-container').show();
+    $("#spell-editor").css("bottom", "-100%");
+    $("#spell-editor").show();
+    $("#spell-editor").animate({bottom: "0"}, "slow");
+
+    // $('#tutorial-container').show();
     $('#spell-code-editor,#chat-container').on('keydown keyup keypress', (e)=>e.stopPropagation())
     editor = ace.edit('spell-code-editor', {copyWithEmptySelection: true, mode: 'ace/mode/javascript', theme: 'ace/theme/tomorrow_night_bright'});
     editor.on('change', (e)=>{setTimeout(()=>{
@@ -79,22 +180,29 @@ function start(){
 
     }, 20)})
     window.logEditorMessage = (elem)=>{
-      let atBottom = $('#spell-editor-log').scrollTop() > document.getElementById('spell-editor-log').scrollHeight - 30;
+      let atBottom = $('#spell-editor-log').scrollTop() > document.getElementById('spell-editor-log').scrollHeight - document.getElementById('spell-editor-log').offsetHeight - 30;
       $("#spell-editor-log").append("<pre>" + elem + "</pre>");
       if (atBottom) $('#spell-editor-log').scrollTop(document.getElementById('spell-editor-log').scrollHeight);
     }
+    markTime('spell-log', 'on');
     client.on('spell-log', (msg)=>logEditorMessage(msg));
 
+    markTime('add-spell', 'on');
     client.on('add-spell', (id)=>{
       console.log("Recieved New Spell");
       $("#spell-select-list").append("<button type='button' class='dropdown-item' data-spell='" + id + "'>" + (Spell.list.get(id)?Spell.list.get(id).name:"Loading...") + "</button>");
+      setTimeout(()=>{
+        $("#spell-select-list [data-spell='" + id + "']").text(Spell.list.get(id).name);
+      }, 2000);
     })
 
+    markTime('remove-spell', 'on');
     client.on('remove-spell', (id)=>{
       $("#spell-select-list [data-spell='" + id + "']").remove();
     })
 
     $("#spell-select-list").on('click', 'button.dropdown-item', (e)=>{
+      markTime('spell-content-request', 'send');
       client.send('spell-content-request', $(e.target).data('spell') , (data)=>{
         console.log("Recieved ACK for spell");
         console.log(data);
@@ -103,33 +211,92 @@ function start(){
           $("#spell-select-list .active").removeClass('active');
           $(e.target).addClass('active');
           currentSpell = $(e.target).data('spell');
+          $("#spell-select > button").text(Spell.list.get(currentSpell).name)
           editor.getSession().setValue(data);
         }
       })
     })
 
     $("#spell-compile").click((e)=>{
+      markTime('spell-compile', 'send');
       client.send('spell-compile', currentSpell, editor.getSession().getValue())
       logEditorMessage("Compiling...")
     })
 
-    $("#new-spell").click((e)=>{
-      client.send('new-spell', "Spell" + Spell.list.getIds().length);
+    $("#spell-name-form").submit((e)=>{
+      e.preventDefault();
+      let name = $("#spell-name-input").val();
+      if ($("#spell-name-form").get(0).checkValidity() == false) {
+        $("#spell-name-form").addClass('was-validated');
+        return;
+      }
+      markTime('new-spell', 'send');
+      client.send('new-spell', name);
+    })
+
+    $("#run-spell").click((e)=>{
+      markTime('run-spell', 'send');
+      client.send('run-spell', currentSpell);
     })
 
     logEditorMessage("<span style='color: #0aa;'>Spell Editor</span> Log <span style='color: orange;'>V1.0.0</span>");
     setTimeout(()=>$("#spell-editor-logo").width((editor.renderer.gutterWidth + 1)), 3)
     require('./chat-window.js');
+    require('./tut-window.js');
+
+
+    let crawler = (dir)=>{
+      let res = "";
+      let docs = fs.readdirSync(dir, {encoding: "utf-8", withFileTypes: true});
+      for (doc of docs) {
+        console.log(doc);
+        if (doc.isFile()){
+          console.log(doc.name);
+          let firstLine = new Uint8Array(100);
+          fs.readSync(fs.openSync(path.join(dir, doc.name), "r"), firstLine, 0, 100, 0);
+          firstLine = new TextDecoder('utf-8').decode(firstLine)
+          res += "<li class='nav-item'><a class='nav-link' data-file='" + path.join(dir, doc.name) + "' href='#'>" + firstLine.slice(1, firstLine.indexOf("\n")) + "</a></li>"
+        } else if (doc.isDirectory()) {
+          res += "<li class='nav-item'><a class='nav-link folder' href='#'>" + doc.name + "</a><ul class='nav flex-column ml-3'>" + crawler(path.join(dir, doc.name)) + "</ul></li>";
+        }
+      }
+      return res
+    }
+
+    let contents = crawler('./client/tutorial/');
+    console.log(contents);
+
+    $("#tutorial-contents-list").html(contents);
+
+
+    $("#tutorial-tab-contents").on("click", ".nav-link[data-file]",(e)=>{
+      e.stopPropagation();
+      let file = $(e.target).data('file');
+      fs.readFile(file, "utf-8", (err, data)=>{
+        if (err) {
+          notify("danger", "Could not load documentation.", "The documentation file at '" + file + "' could not be loaded. " + err.message, 10000)
+          return;
+        }
+
+        $("#tutorial-tab-view").html(mdParser.parse(data));
+        $("#tutorial-view-link").tab('show');
+      })
+    })
+
+
     playerID = netID;
     let whenDone = (pack)=>{
       myPlayer = Player.list.get(netID);
       if(myPlayer) {
+        markTime('player-damage', 'on');
         client.on('player-damage', (data)=>{
           damageTimer = 60;
         })
+        markTime('player-killed', 'on');
         client.on('player-killed', (who)=>{
           $('#killed').show().delay(2000).hide('fast');
         })
+        markTime('chat-msg', 'on');
         client.on('chat-msg', (msg)=>{
           msg.text = msg.text.replace(/\@(\w+)/gi, "<span style='color: #007bff;'>@$1</span>");
           switch (msg.type) {
@@ -153,6 +320,7 @@ function start(){
         })
         $("#chat-form").submit((e)=>{
           e.preventDefault();
+          markTime('chat-msg', 'send');
           client.send('chat-msg', $('#chat-input').val());
           $('#chat-input').val("")
         })
@@ -168,6 +336,7 @@ function start(){
 
         controls.mouse.on('wheel', (e)=>{
           if (myPlayer) {
+            markTime('player-hotbar-scroll', 'send');
             client.send('player-hotbar-scroll', (Math.floor(e.deltaY / 100)))
           }
         })
@@ -178,14 +347,30 @@ function start(){
         client.socket.off("connectionmanager-init", whenDone);
       }
     }
-    client.on('connectionmanager-init', whenDone)
+    markTime('connectionmanager-init', 'on');
+    client.on('connectionmanager-init', whenDone);
+    markTime('server-reload', 'on');
+    client.on('server-reload', ()=>{
+      location.reload();
+    })
+    connection.connect();
+    window.onbeforeunload = (e)=>{
+      console.log("Disconnecting...");
+      connection.server.socket.disconnect(true);
+      dialog.showMessageBox({title:"Disconnected", message: "The client has disconnected."})
+      e.returnValue = '';
+      return true;
+    };
+    res(true);
+
   })
 
 
   loop.setLoop(()=>{
     //gc.clear();
-    gc.begin();
     myPlayer = Player.list.get(playerID);
+    gc.camera.setFollow([myPlayer]);
+    gc.begin();
     gc.background(Sprite.get('background-' + myPlayer.world.netID));
     //console.log(myPlayer.world);
     Wall.list.run('show', gc, myPlayer.world);
@@ -232,10 +417,9 @@ function start(){
   }
 
 
-  let user = $('#user').val();
-  let pass = $("#pass").val();
+  markTime('loaded', 'send');
+  client.send('loaded');
 
-  client.send('login', {name: user, pass})
 }
 
 window.onload = ready;
