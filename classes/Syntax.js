@@ -64,8 +64,14 @@ let mdParser = new Parser();
 
 // mdParser.addElement();
 
-  mdParser.addElement(new Element(/(?:\r\n|\r|\n)+\>(?:\s+)(.+?)(?:\r\n|\r|\n)/g, true, function(found){
-    found = found.replace(this.token, "$1");
+  mdParser.addElement(new Element(/\&\#[\dabcdefABCDEF]{2,4};/g, false, function(found){
+    return "<entity>" + found.replace(/\&\#/g, "") + "</entity>";
+  }))
+
+  mdParser.addElement(new Element(/(^> ?(?:\r\n|\r|\n|.)+?)(?=(?:\r\n|\r|\n){2,})/gm, true, function(found){
+    found = found.replace(/>\s*/g, "");
+    console.log(found);
+    found = found.replace(/(?:\r\n|\r|\n)/g, "<br>");
     console.log(found);
     return "<blockquote>" + found + "</blockquote>";
   }))
@@ -73,12 +79,14 @@ let mdParser = new Parser();
   mdParser.addElement(new Element(/```(?:\r\n|\r|\n)(((?:\r\n|\r|\n)|.)+?)(?:\r\n|\r|\n)```/mg, true, function(found){
     let res = "<code>";
     found = found.replace(this.token, "$1");
+    found = found.replace(/\r/g, "\\r");
+    found = found.replace(/\n/g, "\\n");
     res += found + "</code>";
     return res;
   }))
 
   mdParser.addElement(new Element(/((\|[^|\r\n]*)+\|(\r?\n|\r)?)+/gm, true, function(found){
-    let res = "<table><thead><tr>";
+    let res = "<table class='table'><thead><tr>";
     found = found.trim();
     console.log(found);
     let rows = found.split(/(?:\r?\n|\r)/g).map((row)=>{
@@ -128,7 +136,7 @@ let mdParser = new Parser();
     let lev = found.match(/\#+/i)[0].length;
     console.log("Heading Level: ", lev);
     found = found.replace(/\#+/i, "");
-    return "<h" + lev + ">" + found + "</h" + lev + ">"
+    return "<h" + lev + " class='rule'>" + found + "</h" + lev + ">"
   }))
 
   mdParser.addElement(new Element(/!\[(.+?)\]\((.+?)\)/g, false, function(found){
@@ -223,6 +231,11 @@ let mdParser = new Parser();
     return "<details class='fn' id='fn-" + from + "'><summary><span class='fn-num'>" + number + ".</span>" + lead + "<a href='#fnref-" + from + "' class='fn-backref'>&nbsp↩</a></summary><p>" + text + "</p></details>";
   }))
 
+  mdParser.addElement(new Element(/\^\((.+?)\)\^/g, false, function(found){
+    let content = found.replace(this.token, "$1");
+    return "<sup>" + content + "</sup>";
+  }))
+
   mdParser.addElement(new Element(/\^(.+?)\^/g, false, function(found){
     let title = found.replace(this.token, "$1");
     let abbr = title.replace(/[a-z\s]/g, "");
@@ -230,6 +243,10 @@ let mdParser = new Parser();
   }))
 
   //---Keep Last ---------
+  mdParser.addElement(new Element(/<entity>([\dabcdefABCDEF]{2,4};)<\/entity>/g, false, function(found){
+    return "&#" + found.replace(this.token, "$1");
+  }))
+
   mdParser.addElement(new Element(/(\r\n|\r|\n){3,}/mg, true, function(found){return "";}));
 
   mdParser.addElement(new Element(/\s\s(\r\n|\r|\n)/mg, false, function(found){return "<br>";}));

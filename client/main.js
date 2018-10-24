@@ -3,7 +3,8 @@ global.SIDE = ConnectionManager.CLIENT;
 require('../config.js');
 const path = require('path')
 const {dialog} = require('electron');
-const fs = require('fs')
+const fs = require('fs');
+const opn = require('opn');
 let host = decodeURIComponent(location.hash.slice(1));
 require('../ace-src-noconflict/ace.js');
 ace.config.set('basePath', path.join(__dirname, "../ace-src-noconflict"))
@@ -144,6 +145,65 @@ function load(){
   Sprite.loadAll($('#load')).then(start);
 }
 
+function refreshTut(){
+  let crawler = (dir)=>{
+    let res = "";
+    let docs = fs.readdirSync(dir, {encoding: "utf-8", withFileTypes: true});
+    for (doc of docs) {
+      console.log(doc);
+      if (doc.isFile()){
+        console.log(doc.name);
+        let firstLine = new Uint8Array(100);
+        fs.readSync(fs.openSync(path.join(dir, doc.name), "r"), firstLine, 0, 100, 0);
+        firstLine = new TextDecoder('utf-8').decode(firstLine)
+        res += "<li class='nav-item'><a class='nav-link' data-file='" + path.join(dir, doc.name) + "' href='#'>" + firstLine.slice(1, firstLine.indexOf("\n")) + "</a></li>"
+      } else if (doc.isDirectory()) {
+        res += "<li class='nav-item'><a class='nav-link folder' href='#'>" + doc.name + "</a><ul class='nav flex-column ml-3'>" + crawler(path.join(dir, doc.name)) + "</ul></li>";
+      }
+    }
+    return res
+  }
+
+  let contents = crawler('./client/tutorial/');
+  console.log(contents);
+
+  $("#tutorial-contents-list").html(contents);
+}
+
+function topOfDoc(){
+  $("#tutorial-tab-view").get(0).scrollTop = 0;
+  console.log("Scrolling to top");
+}
+
+function loadDoc(file){
+  fs.readFile(file, "utf-8", (err, data)=>{
+    if (err) {
+      notify("danger", "Could not load documentation.", "The documentation file at '" + file + "' could not be loaded. " + err.message, 10000)
+      return;
+    }
+
+    $("#tutorial-tab-view").html(mdParser.parse(data));
+
+    $("#tutorial-tab-view").find("code").replaceWith(function(i){
+      let elem = $("<div class='code-example'>" + this.innerHTML.replace(/\\r/g, "\r").replace(/\\n/g, "\n") + "</div>");
+      console.log("Replacing code");
+      return elem;
+    })
+
+    $("#tutorial-tab-view").find(".code-example").each((i,elem)=>{
+      let content = elem.innerHTML.replace(/\&gt\;/g, ">").replace(/\&lt\;/g, "<");
+      console.log("Transforming code to editors");
+      let editor = ace.edit(elem, {copyWithEmptySelection: true, mode: 'ace/mode/javascript', theme: 'ace/theme/tomorrow_night_bright', readOnly: true});
+      editor.setValue(content);
+    })
+
+    $("#tutorial-tab-view").data('file', file)
+    $("#tutorial-view-link").one('shown.bs.tab', topOfDoc);
+    $("#tutorial-view-link").tab('show');
+    $("#tutorial-tab-view").get(0).scrollTop = 0;
+  })
+}
+
 function start(){
 
 
@@ -239,49 +299,54 @@ function start(){
       client.send('run-spell', currentSpell);
     })
 
+    $("#toggle-spell-editor").click(()=>{
+      let bottom = $("#spell-editor").css('bottom');
+      console.log(bottom);
+      console.log($("#spell-editor").get(0).offsetHeight);
+      let wasHidden = bottom != "0px";
+      if (wasHidden){
+        $("#spell-editor").css("bottom", "-" + ($("#spell-editor").get(0).offsetHeight) + "px");
+        // $("#spell-editor").show();
+        $("#spell-editor").animate({bottom: "0"}, "slow");
+      } else {
+        $("#spell-editor").css("bottom", "0");
+        $("#spell-editor").animate({bottom:  "-" + ($("#spell-editor").get(0).offsetHeight) + "px"}, "slow");
+      }
+    })
+
     logEditorMessage("<span style='color: #0aa;'>Spell Editor</span> Log <span style='color: orange;'>V1.0.0</span>");
     setTimeout(()=>$("#spell-editor-logo").width((editor.renderer.gutterWidth + 1)), 3)
     require('./chat-window.js');
     require('./tut-window.js');
 
 
-    let crawler = (dir)=>{
-      let res = "";
-      let docs = fs.readdirSync(dir, {encoding: "utf-8", withFileTypes: true});
-      for (doc of docs) {
-        console.log(doc);
-        if (doc.isFile()){
-          console.log(doc.name);
-          let firstLine = new Uint8Array(100);
-          fs.readSync(fs.openSync(path.join(dir, doc.name), "r"), firstLine, 0, 100, 0);
-          firstLine = new TextDecoder('utf-8').decode(firstLine)
-          res += "<li class='nav-item'><a class='nav-link' data-file='" + path.join(dir, doc.name) + "' href='#'>" + firstLine.slice(1, firstLine.indexOf("\n")) + "</a></li>"
-        } else if (doc.isDirectory()) {
-          res += "<li class='nav-item'><a class='nav-link folder' href='#'>" + doc.name + "</a><ul class='nav flex-column ml-3'>" + crawler(path.join(dir, doc.name)) + "</ul></li>";
-        }
-      }
-      return res
-    }
-
-    let contents = crawler('./client/tutorial/');
-    console.log(contents);
-
-    $("#tutorial-contents-list").html(contents);
+    refreshTut();
 
 
     $("#tutorial-tab-contents").on("click", ".nav-link[data-file]",(e)=>{
       e.stopPropagation();
       let file = $(e.target).data('file');
-      fs.readFile(file, "utf-8", (err, data)=>{
-        if (err) {
-          notify("danger", "Could not load documentation.", "The documentation file at '" + file + "' could not be loaded. " + err.message, 10000)
-          return;
-        }
-
-        $("#tutorial-tab-view").html(mdParser.parse(data));
-        $("#tutorial-view-link").tab('show');
-      })
+      loadDoc(file);
     })
+
+    $("#tutorial-tab-view").on('click', 'a', (e)=>{
+      e.preventDefault();
+      let href = $(e.target).attr('href');
+      if (/^https?:\/\//i.test(href)||path.extname(href) !== ".md"){
+        opn(new URL(href, __dirname));
+      } else {
+        let file = path.join(path.dirname($("#tutorial-tab-view").data('file')),href);
+        loadDoc(file);
+      }
+    })
+
+    $("#refresh-tutorial").click(refreshTut);
+
+    $("#spell-help").click((e)=>{
+      $("#tutorial-container").show();
+    })
+
+    $("#close-tutorial").click(()=>$("#tutorial-container").hide())
 
 
     playerID = netID;

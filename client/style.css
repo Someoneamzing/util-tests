@@ -299,6 +299,29 @@ html, body {
   color: grey;
 }
 
+#toggle-spell-editor {
+  position: absolute;
+  top: -15px;
+  width: 100vw;
+  height: 15px;
+  background-color: #333;
+  border: none;
+  color: white;
+  outline: none;
+}
+
+#toggle-spell-editor i {
+  margin: -5px;
+}
+
+#toggle-spell-editor:hover {
+  background-color: #444;
+}
+
+#toggle-spell-editor:active {
+  outline: none;
+}
+
 #spell-space {
   height: 20px;
   position: absolute;
@@ -407,7 +430,7 @@ html, body {
 }
 
 #tutorial-title {
-  width: calc(100% - 20px);
+  width: calc(100% - 60px);
   margin: 0!important;
   display: inline-block;
   box-sizing: border-box;
@@ -422,6 +445,10 @@ html, body {
   border-radius: 3px;
   margin: 0;
   background-color: white;
+}
+
+#tutorial-tab-view,#tutorial-tab-contents {
+  overflow: auto;
 }
 
 #tutorial-tab-view .code {
@@ -455,6 +482,24 @@ html, body {
   bottom: 0;
 }
 
+#refresh-tutorial {
+  font-size: 16px;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  top: -10px;
+  background: none;
+  border: none;
+}
+
+#refresh-tutorial .material-icons {
+  font-size: 20px;
+  /* font-weight: bold; */
+  color: white;
+}
+
 #notifier {
   pointer-events: none;
   user-select: none;
@@ -474,4 +519,33 @@ html, body {
 
 #tutorial-tab-view {
   padding: 15px 0.3in 15px 0.3in;
+}
+
+#tutorial-tab-view img {
+  max-width: 100%;
+}
+
+#tutorial-tab-view samp {
+  background: rgb(128,128,128,0.3);
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#tutorial-tab-view .rule {
+  padding-bottom: 10px;
+  border-bottom: 1px solid lightgrey;
+  width: 100%;
+}
+
+#tutorial-tab-view .code-example {
+  width: 100%;
+  height: 300px;
+}
+
+blockquote {
+  background: lightgrey;
+  border-left: 4px grey solid;
+  padding: 15px;
 }

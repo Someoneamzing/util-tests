@@ -17,6 +17,7 @@
     "electron-game-util": "../electron-game-util",
     "jquery": "^3.3.1",
     "lokijs": "^1.5.5",
+    "opn": "^5.4.0",
     "popper.js": "^1.14.3",
     "uuidv4": "^2.0.0",
     "vm2": "^3.6.3"
