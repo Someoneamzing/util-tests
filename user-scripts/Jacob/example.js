@@ -1,1 +1,2 @@
-window.alert("Hello")
+let myArray;
+console.log(myArray)

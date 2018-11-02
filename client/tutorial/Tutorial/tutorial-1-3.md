@@ -23,7 +23,7 @@ Note, JavaScript remembered what myVar meant so it printed out what it stored. A
 | -------- | ---- | ------- |
 | += | Increment by | This operator adds the right number to the value of the left variable and stores the result in that variable. |
 | -= | Decrement by | This operator subtracts the right number from the value of the left variable and stores the result in that variable. |
-| *= | Multiply and store | This operator multiplies the right number by the value of the left variable and stores the result in that variable. |
+| &#42;= | Multiply and store | This operator multiplies the right number by the value of the left variable and stores the result in that variable. |
 | /= | Divide and store | This operator divides the value of the left variable by the right number and stores the result in the left variable. |
 
 ## Example
@@ -70,6 +70,18 @@ This works because JavaScript calculates the variable using the original value b
 `myNum = 27;`  
 
 This means the operators above are what are known as shorthand. They perform the same operation so `myNum += 2;` is the same as `myNum = myNum + 2;`.
+
+## I Don't Know You!
+If you ask JavaScript for a variable that hasn't been declared it will give you back `undefined`. `undefined` is a special value that means the value has not been set, there is nothing here. It is also the value of any variable that has been declared but not assigned, e.g.
+
+```
+let myVar;
+console.log(myVar);// Output: undefined
+myVar = 3;
+console.log(myVar);// Output: 3
+```
+
+The first line told JavaScript we wanted to use the name `myVar` but we don't want to store anything yet. We can see on the second line how JavaScript told us that we have not assigned a value to `myVar`, as such we get the value  `undefined`.
 
 ## Your Turn!
 Try to come up with a large calculation and use the shorthand operators. Get a feel as to how they work and see where they break. Maybe try running it with another variable on the right-hand side or a number on the left. What happens?

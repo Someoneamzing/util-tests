@@ -81,11 +81,12 @@ let mdParser = new Parser();
     found = found.replace(this.token, "$1");
     found = found.replace(/\r/g, "\\r");
     found = found.replace(/\n/g, "\\n");
+    found = found.replace(/\*/g, "&#42;")
     res += found + "</code>";
     return res;
   }))
 
-  mdParser.addElement(new Element(/((\|[^|\r\n]*)+\|(\r?\n|\r)?)+/gm, true, function(found){
+  mdParser.addElement(new Element(/((\|[^|\r\n]*)+\|(\r?\n|\r))+/gm, true, function(found){
     let res = "<table class='table'><thead><tr>";
     found = found.trim();
     console.log(found);
