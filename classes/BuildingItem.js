@@ -9,3 +9,5 @@ class BuildingItem extends Item {
     new BuildingClass({x: player.controls.mouse.x, y: player.controls.mouse.y});
   }
 }
+
+module.exports = BuildingItem;

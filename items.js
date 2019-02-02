@@ -2,6 +2,7 @@ const {QueryResult, Circle} = require('electron-game-util');
 const Spell = require('./classes/Spell.js')
 
 const Item = require('./classes/Item.js');
+const BuildingItem = require('./classes/BuildingItem.js');
 
 let stone = new Item('stone');
 let gold = new Item('gold');

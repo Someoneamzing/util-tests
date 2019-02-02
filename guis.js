@@ -1,7 +1,7 @@
 const {GUI, GUIElement, GUITextBox} = require('electron-game-util');
 
-let test = new GUI('test', connection.server);
+let counter = new GUI('counter', connection.server);
 
-test.registerElements = function(){
-  this.addElement(new GUITextBox('thatThing', 'x', connection.server));
+counter.registerElements = function(){
+  this.addElement(new GUITextBox('number', 'counter'))
 }

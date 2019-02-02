@@ -6,26 +6,31 @@
 
 const Entity = require('./Entity.js');
 
-const {TrackList} = require('electron-game-util');
+const {TrackList, ConnectionManager, CollisionGroup} = require('electron-game-util');
 
 let list = new TrackList(SIDE);
 
-class Building extends NetworkWrapper(Object, list) {
+class Building extends NetworkWrapper(CollisionGroup(Entity, "Building"), list) {
   constructor(opts){
     super(opts);
     this.gui = this.constructor.gui;
-    gui.on('');
+    // this.gui.on('');
   }
 
   use(player) {
-    this.gui.open(connection.connections[player.socketID], this);
+    this.gui.open(connection.connections[player.socketID].socket, this);
   }
 
   destroy(player) {
     this.gui.closeOnObject(this);
+  }
 
+  static get registryName(){
+    return "building";
   }
 }
 
 list.setType(Building);
 Building.list = list;
+
+module.exports = Building;

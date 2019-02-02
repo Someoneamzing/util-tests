@@ -26,6 +26,8 @@ const Enemy = require('./classes/Enemy.js');
 const Inventory = require('./classes/Inventory.js');
 const ItemEntity = require('./classes/ItemEntity.js');
 const Teleporter = require('./classes/Teleporter.js');
+const Building = require('./classes/Building.js');
+const Counter = require('./classes/Counter.js');
 const Command = require('./classes/Command.js');
 const Spell = require('./classes/Spell.js');
 const loki = require('lokijs');
@@ -46,6 +48,8 @@ connection.addTrackList(Enemy.list);
 connection.addTrackList(Inventory.list);
 connection.addTrackList(ItemEntity.list);
 connection.addTrackList(Teleporter.list);
+connection.addTrackList(Building.list);
+connection.addTrackList(Counter.list);
 connection.addTrackList(Spell.list);
 
 require('./items.js');

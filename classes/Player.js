@@ -1,4 +1,4 @@
-const {Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList} = require('electron-game-util');
+const {Rectangle, Point, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList} = require('electron-game-util');
 const Entity = require('./Entity.js');
 const ItemEntity = require('./ItemEntity.js');
 const Item = require('./Item.js');
@@ -79,6 +79,13 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
           let mouse = this.controls.mouse;
           this.hsp = (Number(this.controls.keys["D"]||0) - Number(this.controls.keys['A']||0)) * this.walkSpeed;
           this.vsp = (Number(this.controls.keys["S"]||0) - Number(this.controls.keys['W']||0)) * this.walkSpeed;
+          if (mouse.right == true && this.lastRight == false){
+            console.log(mouse.x, mouse.y);
+            let buildings = this.world.collisionTree.query(new Point(mouse.x, mouse.y), ['Building']).getGroup('found');
+            if (buildings.length > 0) {
+              buildings[0].use(this);
+            }
+          }
           if (this.inventory.selected){
             if (mouse.left == true && this.lastLeft == false){
               Item.attack(this.inventory.selected, this);
