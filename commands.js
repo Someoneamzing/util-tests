@@ -12,9 +12,9 @@ tp.setHandle((args,p)=>{
   return "Teleported to " + args.x + ", " + args.y + "."
 })
 
-let give = new Command('give', true, {type: "string", name: "type"}, {type: "number", name: "amount"});
+let give = new Command('give', true, {type: "string", name: "type"}, {type: "number", name: "amount"}, {type: "JSON", name: "data"});
 give.setHandle((args, p)=>{
-  p.inventory.add(args.type, args.amount);
+  p.inventory.add(args.type, args.amount, args.data?args.data:undefined);
   return "Gave " + args.amount + " of " + args.type + "."
 })
 

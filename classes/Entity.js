@@ -37,7 +37,7 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
       }
       this.hsp = 0;
     }
-    this.x += this.hsp;
+    this.hsp != 0 ? this.x += this.hsp: "";
 
     if(this.collision(this.x, this.y + this.vsp, true)){
       while(!this.collision(this.x, this.y + Math.sign(this.vsp), true)){
@@ -45,7 +45,7 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
       }
       this.vsp = 0;
     }
-    this.y += this.vsp;
+    this.vsp != 0 ? this.y += this.vsp : "";
   }
 
   update(pack){

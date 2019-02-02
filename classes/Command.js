@@ -25,14 +25,24 @@ class Command {
 
   call(c, player) {
     let args = {};
-    if (this.multiArgs) {c = c.split(" ");} else {c = [" ",c.replace(this.key + " ", "")];};
+    if (this.multiArgs) {
+      let from = 0;
+      let res = Command.findMatchingPair(c.substring(from), "{", "}");
+      while (res) {
+        c = c.substring(0,res.start) + res.string.replace(" ", "​") + c.substring(res.end + 1);
+        from = res.end;
+        res = Command.findMatchingPair(c.substring(from), "{", "}");
+      }
+      c = c.split(" ");
+    } else {c = [" ",c.replace(this.key + " ", "")];};
     console.log(c);
     for (let i = 1; i < c.length; i ++){
+      c[i] = c[i].replace("​", " ");
       console.log(i);
       let t = this.template[i - 1];
       console.log(t);
       console.log(c[i]);
-      if (t.values && !t.values.includes(c[i])) return "<span style='color: red;'>" + t.name + " must be one of " + t.values.reduce((r,v,s)=>{r += (s!=t.values.length-2?(s != t.values.length - 1?v + ", ": v ): v + " or ")}) + "</span>";
+      if (t.values && !t.values.includes(c[i])) return "<span style='color: red;'>" + t.name + " must be one of " + t.values.reduce((r,v,s)=>{return r + (s!=t.values.length-2?(s != t.values.length - 1?v + ", ": v ): v + " or ")}, "") + "</span>";
       if (t.type == 'number' && ((t.range && (t.range.min?t.range.min:-Infinity > c[i]||t.range.max?t.range.max:Infinity < c[i])||isNaN(c[i])))) {
         let problem;
         if (t.range && typeof t.range.max == 'undefined' && typeof t.range.min != "undefined"){
@@ -54,6 +64,7 @@ class Command {
           args[t.name] = "" + c[i];
           break;
         case "JSON":
+          console.log(c[i]);
           args[t.name] = JSON.parse(c[i]);
           break;
       }
@@ -74,6 +85,29 @@ class Command {
 
   static get(key){
     return Command.list[key];
+  }
+
+  static findMatchingPair(text, start, end) {
+    let level = 0;
+    let startI = 0;
+    for (let i = 0; i < text.length; i ++) {
+      let char = text.charAt(i);
+      if (char == "\\") i ++;
+      if (char == start) {
+        level ++;
+        if (level == 1) {
+          startI = i;
+        }
+      }
+      // FIXME: Not correctly marking the pairs.
+      if (char == end) {
+        level --;
+        console.log(startI, i, level);
+        if (level == 0) return {start: startI, end: i, string: text.substring(startI,i + 1)};
+      }
+
+    }
+    return null;
   }
 }
 

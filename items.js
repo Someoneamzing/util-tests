@@ -1,4 +1,5 @@
 const {QueryResult, Circle} = require('electron-game-util');
+const Spell = require('./classes/Spell.js')
 
 const Item = require('./classes/Item.js');
 
@@ -19,6 +20,9 @@ sword.attack = (stack, player)=>{
 
 let spell = new Item('spell');
 spell.attack = (stack, player)=>{
-  
+  let id = stack.data.spell;
+  console.log(id);
+  let spell = Spell.list.get(id);
+  Spell.sandbox.run(spell);
 }
 spell.use = spell.attack;

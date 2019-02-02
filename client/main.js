@@ -1,4 +1,4 @@
-const {Client, Sprite, ConnectionManager, ControlInterface, TrackList, NetworkWrapper, Rectangle, Line, Point, Circle, GameLoop, GameCanvas} = require('electron-game-util');
+const {Client, Sprite, ConnectionManager, ControlInterface, TrackList, NetworkWrapper, Rectangle, Line, Point, Circle, GameLoop, GameCanvas, GUI} = require('electron-game-util');
 global.SIDE = ConnectionManager.CLIENT;
 require('../config.js');
 const path = require('path')
@@ -72,6 +72,10 @@ function ready(){
   connection.addTrackList(ItemEntity.list);
   connection.addTrackList(Teleporter.list);
   connection.addTrackList(Spell.list);
+
+  require('../guis.js');
+
+  GUI.registerAll($("#gui-list").get(0));
 
   $('#login').submit((e)=>{
     $("#invalid-user-feedback").text("")

@@ -15,7 +15,7 @@ global.markTime = (event, dir)=>{
 
 }
 
-const {Server, ConnectionManager, TrackList, NetworkWrapper, Rectangle, GameLoop, Line, Point} = require('electron-game-util');
+const {Server, ConnectionManager, TrackList, NetworkWrapper, Rectangle, GameLoop, Line, Point, GUI, GUIElement} = require('electron-game-util');
 global.SIDE = ConnectionManager.SERVER;
 
 const Entity = require('./classes/Entity.js');
@@ -50,6 +50,9 @@ connection.addTrackList(Spell.list);
 
 require('./items.js');
 require('./commands.js');
+require('./guis.js');
+
+GUI.registerAll(document.createElement('div'));
 
 window.onload = ()=>{
   console.log("Document Loaded");
@@ -170,6 +173,7 @@ function start(){
     markTime('new-spell', 'on');
     socket.on('new-spell', (name)=>{
       let spell = new Spell({name});
+      p.inventory.add("spell", 1, {spell: spell.id});
       spell.bindToPlayer(p);
     })
 
