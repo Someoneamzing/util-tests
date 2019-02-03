@@ -24,6 +24,10 @@ class Counter extends NetworkWrapper(Building, list) {
     }
   }
 
+  reset(){
+    this.counter = 0;
+  }
+
   show(gc, world){
     if (world.netID != this.world.netID) return;
     gc.fill('steelblue');
