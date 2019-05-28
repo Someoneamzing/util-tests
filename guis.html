@@ -1,0 +1,5 @@
+<gui-container name="counter" width="600" height="400">
+  <gui-progress-bar id="bar" placeholder="::counter" value="::counter" max="::resetTime" color="::counter!counterColor" x="15" y="15" w="200" h="20"></gui-progress-bar>
+  <gui-number-field placeholder="Reset Time" value="::resetTime" id="field" min="0" max="1000" x="15" y="45"></gui-number-field>
+  <gui-button id="reset" text="Reset" click="::reset" x="15" y="75"></gui-button>
+</gui-container>

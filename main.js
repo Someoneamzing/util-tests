@@ -3,6 +3,8 @@ require('./config.js');
 const uuid = require('uuidv4');
 const fs = require('fs');
 const path = require('path');
+window.$ = require('jquery');
+
 
 global.markTime = (event, dir)=>{
   if (!DO_CONNECTION_LOG) return;
@@ -17,6 +19,10 @@ global.markTime = (event, dir)=>{
 
 const {Server, ConnectionManager, TrackList, NetworkWrapper, Rectangle, GameLoop, Line, Point, GUI, GUIElement} = require('electron-game-util');
 global.SIDE = ConnectionManager.SERVER;
+
+let server = new Server(2000);
+global.connection = new ConnectionManager(SIDE, server);
+
 
 const Entity = require('./classes/Entity.js');
 const Wall = require('./classes/Wall.js');
@@ -35,10 +41,8 @@ const db = new loki('data.db', {autosave: true});
 let users;
 // let
 
-let server = new Server(2000);
 let loop = new GameLoop('main', 1000/60);
 
-global.connection = new ConnectionManager(SIDE, server);
 
 connection.addTrackList(Entity.list);
 connection.addTrackList(Wall.list);
@@ -54,12 +58,40 @@ connection.addTrackList(Spell.list);
 
 require('./items.js');
 require('./commands.js');
-require('./guis.js');
 
-GUI.registerAll(document.createElement('div'));
+window.Log = {
+  needsReflow: false,
+  reflow: ()=>{
+    let out = [];
+    for (let msg of Log.new) {
+      out.push(`<tr><td><time datetime="${msg[0].toISOString()}">${msg[0].getHours() + ":" + msg[0].getMinutes() + ":" + msg[0].getSeconds() + ":" + msg[0].getMilliseconds()}</time></td><td><pre>${msg[1]}</pre></td></tr>`)
+    }
+    // Log.new.map(e=>Log.old.push(e));
+    Log.new.length = 0;
+    $("#log").append(out);
+    if ($("#log").find("tr").length > 100) {
+      $("#log").find("tr").slice(0,$("#log").find("tr").length-100).remove();
+    }
+    Log.needsReflow = false;
+  },
+  new: [],
+  old: []
+}
+
+
+window.echo = (...msg)=>{
+  Log.new.push([new Date(), msg.join(", ")]);
+  if (!Log.needsReflow) {
+    Log.needsReflow = true;
+    setImmediate(Log.reflow);
+  }
+}
 
 window.onload = ()=>{
   console.log("Document Loaded");
+
+
+  require('./guis.js');
 
   document.getElementById('client-form').onsubmit = (e)=>{
     e.preventDefault();
@@ -84,13 +116,16 @@ loop.setLoop(()=>{
 })
 
 function start(){
-  fs.writeFileSync(path.join(__dirname, 'connection-log.txt'), "----------------------------------------------------------------------------------------\n--------------------------------------START NEW LOG--------------------------------------\n----------------------------------------------------------------------------------------\n", {encoding: "utf-8", flag: "as"});
+  if (DO_CONNECTION_LOG) fs.writeFileSync(path.join(__dirname, 'connection-log.txt'), "----------------------------------------------------------------------------------------\n--------------------------------------START NEW LOG--------------------------------------\n----------------------------------------------------------------------------------------\n", {encoding: "utf-8", flag: "as"});
 
   document.getElementById('start-server').innerText = "Running ...";
   document.getElementById('start-server').disabled = true;
+  echo("Running server...");
+  echo("Initialising Worlds...")
   new World({netID: 'main', displayName: 'Homeworld'});
   new World({netID: 'alien', displayName: 'Martian'});
 
+  echo("Starting spell engine...")
   Spell.reporter.on('error', (stack, spell, ...rest)=>{
     console.log(spell);
     connection.connections[Player.list.get(spell.player).socketID].socket.emit('spell-log', '<span style="color: red;">'.concat(...rest) + " in spell: " + spell.name + "\n\n" + stack + "</span>");
@@ -128,7 +163,8 @@ function start(){
 
     markTime('chat-msg', 'on');
     socket.on('chat-msg', (msg)=>{
-      // if ((/\<script\>/g).test(msg)) msg = "Im a dirty cheater! ";
+      if ((/\<script\>/g).test(msg)) msg = "Im a dirty cheater! ";
+      echo("[CHAT] &lt;" + p.name + "&gt; " + msg)
       if (msg.charAt(0) != "/") {
         console.info('CHAT| ' + p.name + ': ' + msg);
         markTime('chat-msg', 'send');
@@ -177,7 +213,7 @@ function start(){
     markTime('new-spell', 'on');
     socket.on('new-spell', (name)=>{
       let spell = new Spell({name});
-      p.inventory.add("spell", 1, {spell: spell.id});
+      p.inventory.add("spell", 1, {spell: spell.netID});
       spell.bindToPlayer(p);
     })
 
@@ -201,7 +237,7 @@ function start(){
     });
 
   }
-
+  echo('Waiting for connections...');
   markTime('connection', 'on');
   server.on('connection', (socket)=>{
     markTime('signup', 'on');
@@ -229,26 +265,30 @@ function start(){
       let user = users.by('name', name);
       console.log(user);
       if (user) {
+        if (Player.getByName(name)) res(false, "Player Connected");
         if (user.pass === pass) {
           successfulLogin(socket, name, pass);
           res(true);
         } else {
-          res(false, "Invalid Password")
+          res(false, "Invalid Password");
         }
       } else {
         res(false, "Invalid Username");
       }
     })
   })
-
+  echo("Loading database...")
   db.loadDatabase({}, (e)=>{
     if (e) throw e;
+    echo("Database loaded.")
     console.log("Databse loaded");
     users = db.getCollection('users')
     if (!users) {
       users = db.addCollection('users', {unique:["name"]})
     }
+    echo("Starting connections...")
     server.begin();
+    echo("Running game loop...")
     loop.play();
   })
 

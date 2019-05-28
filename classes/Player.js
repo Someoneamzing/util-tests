@@ -8,7 +8,7 @@ const Spell = require('./Spell.js');
 
 let list = new TrackList(SIDE);
 
-class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
+class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list, ["mouse", "name", "inventoryID", "spells"]) {
   constructor(opts){
     super(opts);
     const {spells = []} = opts;
@@ -59,6 +59,11 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
     gc.fill(153, 0, 255);
     gc.stroke(92, 0, 153);
     gc.rect(this.x, this.y, this.w, this.h);
+    if (this.damageTime > 0) {
+      gc.fill(255,0,0,(this.damageTime)/30);
+      gc.noStroke();
+      gc.rect(this.x, this.y, this.w, this.h);
+    }
     gc.fill('black');
     gc.noStroke();
     gc.textAlign('center', 'bottom');
@@ -72,6 +77,7 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
   }
 
   update(pack){
+    super.update(pack);
     switch(SIDE){
       case ConnectionManager.SERVER:
         this.controls = connection.connections[this.socketID].controls;
@@ -100,37 +106,35 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
           this.lastRight = mouse.right;
           this.lastMiddle = mouse.middle;
         }
-
-        super.update()
         break;
 
-      case ConnectionManager.CLIENT:
-        super.update(pack);
-        this.mouse = pack.mouse;
-        this.name = pack.name;
-        this.inventoryID = pack.inventoryID;
-        this.spells = pack.spells;
-        break;
+      // case ConnectionManager.CLIENT:
+      //   super.update(pack);
+      //   this.mouse = pack.mouse;
+      //   this.name = pack.name;
+      //   this.inventoryID = pack.inventoryID;
+      //   this.spells = pack.spells;
+      //   break;
     }
   }
 
-  getUpdatePkt(){
-    let pack = super.getUpdatePkt();
-    if (this.controls) {pack.mouse = {x: this.controls.mouse.x, y: this.controls.mouse.y};} else {pack.mouse = {x: 0, y: 0}}
-    pack.inventoryID = this.inventoryID;
-    pack.name = this.name;
-    pack.spells = this.spells;
-    return pack;
-  }
+  // getUpdatePkt(){
+  //   let pack = super.getUpdatePkt();
+  //   if (this.controls) {pack.mouse = {x: this.controls.mouse.x, y: this.controls.mouse.y};} else {pack.mouse = {x: 0, y: 0}}
+  //   pack.inventoryID = this.inventoryID;
+  //   pack.name = this.name;
+  //   pack.spells = this.spells;
+  //   return pack;
+  // }
 
-  getInitPkt(){
-    let pack = super.getInitPkt();
-    pack.mouse = {x: 0, y: 0};
-    pack.inventoryID = this.inventoryID;
-    pack.name = this.name;
-    pack.spells = this.spells;
-    return pack;
-  }
+  // getInitPkt(){
+  //   let pack = super.getInitPkt();
+  //   pack.mouse = {x: 0, y: 0};
+  //   pack.inventoryID = this.inventoryID;
+  //   pack.name = this.name;
+  //   pack.spells = this.spells;
+  //   return pack;
+  // }
 
   remove(){
     delete Player.nameMap[this.name];

@@ -34,6 +34,10 @@ class Item extends NetworkWrapper(Object, list) {
     if (!id) return null;
     return Item.list.get(id);
   }
+
+  static idExists(name) {
+    return Item.map.has(name);
+  }
 }
 
 list.setType(Item);

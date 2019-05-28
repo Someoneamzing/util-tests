@@ -3,7 +3,7 @@ const World = require('./World.js');
 
 let list = new TrackList(SIDE, false);
 
-class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
+class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list, ["x", "y", "w", "h", "health", "maxHealth", "hsp", "vsp", "worldID", "damageTime"]) {
   constructor(opts = {}){
     let {x = 0,y = 0,w = 32,h = 32,world = 'main'} = opts;
     super(opts,x,y,w,h);
@@ -13,6 +13,7 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
     this.solid = opts.solid || false;
     this.maxHealth = typeof opts.maxHealth != "undefined" ? opts.maxHealth : 20;
     this.health = typeof opts.health != "undefined" ? opts.health : this.maxHealth;
+    this.damageTime = 0;
   }
 
   get world(){
@@ -21,6 +22,7 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
 
   damage(amount, source){
     this.health = Math.max(0, Math.min(this.health -= amount, this.maxHealth));
+    if (amount > 0) this.damageTime = 30;
     if (this.health <= 0) {
       this.kill(source);
     }
@@ -49,53 +51,57 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
   }
 
   update(pack){
+    super.update(pack);
     switch(SIDE){
       case ConnectionManager.SERVER:
         this.move();
+        if (this.damageTime > 0) this.damageTime --;
 
         break;
 
-      case ConnectionManager.CLIENT:
-        super.update(pack);
-        this.x = pack.x;
-        this.y = pack.y;
-        this.w = pack.w;
-        this.h = pack.h;
-        this.health = pack.health;
-        this.maxHealth = pack.maxHealth;
-        this.hsp = pack.hsp;
-        this.vsp = pack.vsp;
-        this.worldID = pack.world;
+      // case ConnectionManager.CLIENT:
+      //   this.x = pack.x;
+      //   this.y = pack.y;
+      //   this.w = pack.w;
+      //   this.h = pack.h;
+      //   this.health = pack.health;
+      //   this.maxHealth = pack.maxHealth;
+      //   this.hsp = pack.hsp;
+      //   this.vsp = pack.vsp;
+      //   this.worldID = pack.world;
+      //   this.damageTime = pack.damageTime;
+
     }
   }
 
-  getUpdatePkt(){
-    let pack = super.getUpdatePkt();
-    pack.x = this.x;
-    pack.y = this.y;
-    pack.w = this.w;
-    pack.h = this.h;
-    pack.health = this.health;
-    pack.maxHealth = this.maxHealth;
-    pack.vsp = this.vsp;
-    pack.hsp = this.hsp;
-    pack.world = this.world.netID;
-    return pack;
-  }
+  // getUpdatePkt(){
+  //   let pack = super.getUpdatePkt();
+  //   pack.x = this.x;
+  //   pack.y = this.y;
+  //   pack.w = this.w;
+  //   pack.h = this.h;
+  //   pack.health = this.health;
+  //   pack.maxHealth = this.maxHealth;
+  //   pack.vsp = this.vsp;
+  //   pack.hsp = this.hsp;
+  //   pack.world = this.world.netID;
+  //   pack.damageTime = this.damageTime;
+  //   return pack;
+  // }
 
-  getInitPkt(){
-    let pack = super.getInitPkt();
-    pack.x = this.x;
-    pack.y = this.y;
-    pack.w = this.w;
-    pack.h = this.h;
-    pack.health = this.health;
-    pack.maxHealth = this.maxHealth;
-    pack.vsp = this.vsp;
-    pack.hsp = this.hsp;
-    pack.world = this.world.netID;
-    return pack;
-  }
+  // getInitPkt(){
+  //   let pack = super.getInitPkt();
+  //   pack.x = this.x;
+  //   pack.y = this.y;
+  //   pack.w = this.w;
+  //   pack.h = this.h;
+  //   pack.health = this.health;
+  //   pack.maxHealth = this.maxHealth;
+  //   pack.vsp = this.vsp;
+  //   pack.hsp = this.hsp;
+  //   pack.world = this.world.netID;
+  //   return pack;
+  // }
 
   collision(x = this.x,y = this.y,solid = false,types){
     let res = this.world.collisionTree.query(new Rectangle(x,y,this.w,this.h), typeof types == 'string'?[types]:types).getGroup('found');
@@ -121,6 +127,7 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list) {
     }
     for (let id of Entity.list.getIds()){
       let e = Entity.list.get(id);
+      // echo(e.netID);
       e.world.collisionTree.insert(e);
     }
   }

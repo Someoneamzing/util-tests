@@ -75,8 +75,55 @@ Note the repeated commas, JavaScript filled in the gap with empty values so the 
 
 This is known as "leaving holes" in JavaScript, as the value `undefined` can be seen as a hole in the array.
 
-Another way of modifying arrays is through `push()`, `pop()`, `shift()` and `unshift()`. The function is:
+Another way of modifying arrays is through `push()`, `pop()`, `shift()` and `unshift()`. Their behaviours are:
 - `push()`: adds an element to the end of an array.
 - `pop()`: removes the last element in the array and returns the removed element.
-- `shift()`: adds an element to the start of an array.
-- `unshift()`: removes an element from the start of an array and returns the removed element.
+- `unshift()`: adds an element to the start of an array.
+- `shift()`: removes an element from the start of an array and returns the removed element.
+
+### Example
+```
+let myArray = ["Apples", "Bananas", "Oranges"];
+
+
+let lastFruit = myArray.pop();
+console.log("myArray after pop(): " + myArray); // Output: myArray after pop(): Apples,Bananas
+console.log("lastFruit: " + lastFruit); // Output: lastFruit: Oranges
+
+
+myArray.push("Lemons");
+console.log("myArray after push(): " + myArray); // Output: myArray after push(): Apples,Bananas,Lemons
+
+
+let firstFruit = myArray.shift();
+console.log("myArray after shift(): " + myArray); // Output: myArray after shift(): Bananas,Lemons
+console.log("firstFruit: " + firstFruit); // Output: firstFruit: Apples
+
+
+myArray.unshift("Apricots");
+console.log("myArray after unshift(): " + myArray); // Output: myArray after unshift(): Apricots,Bananas,Lemons
+```
+
+Here we can see how `pop()`, `push()`, `shift()` and `unshift()` affect an array, as well as what `pop()` and `shift()` return. Although it is not shown here, `push()` and `unshift()` both return the length of the array after adding the new element.
+
+## How Long?
+
+JavaScript arrays all have a property called `length`. This property, as the name suggests, stores the number of elements in the array.
+
+It can also be used to change how many elements are in an array. By setting the `length` property you can tell JavaScript to add or remove items from the end of the array. If you set `length` to `0` it will empty the array.
+
+### Example
+
+```
+let myArray = ["Apples", "Bananas", "Oranges"];
+console.log("myArray.length: " + myArray.length); // Output: myArray.length: 3
+
+myArray.length = 5;
+console.log("myArray: " + myArray); // Output: myArray: Apples,Bananas,Oranges,,
+
+myArray.length = 1;
+console.log("myArray: " + myArray); // Output: myArray: Apples
+```
+
+## Up Next
+Our next topic is strings and how to manipulate them. Click [here](./tutorial-1-6.md) when you feel comfortable.

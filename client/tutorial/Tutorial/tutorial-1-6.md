@@ -1,4 +1,4 @@
-# Section 1.5
+# Section 1.6
 This section will explore the different methods of string manipulation.
 
 ## Wello Horld!
@@ -103,4 +103,4 @@ console.log(myString.slice(7,13));// Output: Banana
 ```
 
 Here we gave `slice()` a start and an end position, in this case `7` and `13`, and it returned what was in between those two positions. Note:
-- `slice()` includes the character at the start position but not the character in the end position. (As discussed in the part on positions.)
+- `slice()` includes the character at the start position but not the character in the end position. (As discussed in [Section 1.5](./tutorial-1-5.md).)

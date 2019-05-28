@@ -1,0 +1,22 @@
+body,html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+#controls {
+  height: 100px;
+  width: 100%;
+}
+
+#log-table {
+  display: block;
+  border: 1px solid lightgrey;
+  position: fixed;
+  bottom: 0;
+  top: 100px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  overflow-y: scroll;
+}

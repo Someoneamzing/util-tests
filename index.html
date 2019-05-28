@@ -3,12 +3,20 @@
   <head>
     <meta charset="utf-8">
     <title>Electron Game Server</title>
+    <link rel="stylesheet" href="style.css">
     <script src="./main.js" charset="utf-8"></script>
   </head>
   <body>
-    <form id='client-form'>
-      <button type="submit" id="new-client">Open New Client</button><input type="text" id="client-connect" value="localhost">
-    </form>
-    <button type="button" id="start-server">Start Server</button>
+    <div id="controls">
+      <form id='client-form'>
+        <button type="submit" id="new-client">Open New Client</button><input type="text" id="client-connect" value="localhost">
+      </form>
+      <button type="button" id="start-server">Start Server</button>
+    </div>
+    <table id="log-table">
+      <tbody id="log">
+
+      </tbody>
+    </table>
   </body>
 </html>

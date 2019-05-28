@@ -50,7 +50,7 @@ In this example we define a function called `fahrenToCelsius` that takes 1 argum
 4. The `console.log()` lines tell JavaScript to run the code in the function `fahrenToCelsius` with `degrees` set to `32`, `98`, and `12`, and then to display whatever is returned.
 
 ## Try it yourself!
-Try to write a function that converts from one unit of measurement to another. The unit is up to you, just remember to return the result. Once you have written you function display the result of calling it at least 4 times with different parameters.
+Try to write a function that converts from one unit of measurement to another. The unit is up to you, just remember to return the result. Once you have written your function display the result of calling it at least 4 times with different parameters.
 
 ## Up Next
-Our next topic is strings and how to manipulate them. Click [here](./tutorial-1-5.md) when you feel comfortable.
+Our next topic is arrays and how to manipulate them. Click [here](./tutorial-1-5.md) when you feel comfortable.

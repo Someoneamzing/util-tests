@@ -15,7 +15,7 @@ console.log(myVar);
 //Output: This is myVar talking!
 ```
 
-Note, JavaScript remembered what myVar meant so it printed out what it stored. Also we didn't use quotes around myVar in `console.log()`. This is because we didn't want JavaScript to display `myVar` we wanted it to display what `myVar` stored.
+Note, JavaScript remembered what myVar meant so it printed out what it stored. Also we didn't use quotes around myVar in `console.log()`. This is because we didn't want JavaScript to display the text `myVar` we wanted it to display what `myVar` stored.
 
 **But this still isn't anything interesting. So far it's making my code longer! What gives?** This is the beauty of programming. Remember the operators from the last section? There are some more, specifically designed for working with variables. Those operators are:
 

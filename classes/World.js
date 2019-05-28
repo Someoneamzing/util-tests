@@ -2,7 +2,7 @@ const {Point, Circle, Rectangle, QuadTree, NetworkWrapper, QueryResult, Connecti
 
 let list = new TrackList(SIDE);
 
-class World extends NetworkWrapper(Object,list){
+class World extends NetworkWrapper(Object,list,["displayName"]){
   constructor(opts){
     let {id, displayName} = opts;
     super(opts);
@@ -11,26 +11,26 @@ class World extends NetworkWrapper(Object,list){
 
   }
 
-  getInitPkt(){
-    let pack = super.getInitPkt();
-    pack.displayName = this.displayName;
-    return pack;
-  }
+  // getInitPkt(){
+  //   let pack = super.getInitPkt();
+  //   pack.displayName = this.displayName;
+  //   return pack;
+  // }
 
-  getUpdatePkt(){
-    let pack = super.getUpdatePkt();
-    pack.displayName = this.displayName;
-    return pack;
-  }
+  // getUpdatePkt(){
+  //   let pack = super.getUpdatePkt();
+  //   pack.displayName = this.displayName;
+  //   return pack;
+  // }
 
-  update(pack){
-    switch(SIDE){
-      case ConnectionManager.CLIENT:
-        super.update(pack);
-        this.displayName = pack.displayName;
-        break;
-    }
-  }
+  // update(pack){
+  //   super.update(pack);
+  //   switch(SIDE){
+  //     case ConnectionManager.CLIENT:
+  //       this.displayName = pack.displayName;
+  //       break;
+  //   }
+  // }
 }
 
 list.setType(World);
