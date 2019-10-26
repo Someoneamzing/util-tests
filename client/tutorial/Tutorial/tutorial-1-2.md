@@ -16,7 +16,7 @@ Some key things to note:
 
 
 ## Escaping
-If you want to show a `'` or a `"` in your text make sure to either put them inside a different quote e.g. `"Here's how to display a ' character"` or `'Here's how to display a " character'`, or if you want to use both, ensure to 'escape' them. Escape means to tell JavaScript to treat the next character as something special. This is done by adding a backslash (`\`) character in front of the character. If you want to use a `\` character in your text without escaping the next character add another `\` in front of it.
+If you want to show a `'` or a `"` in your text make sure to either put them inside a different quote e.g. `"Use this to display a ' character"` or `'this to display a " character'`, or if you want to use both, ensure to 'escape' them. Escape means to tell JavaScript to treat the next character as something special. This is done by adding a backslash (`\`) character in front of the character. If you want to use a `\` character in your text without escaping the next character add another `\` in front of it.
 
 ### Example
 ```

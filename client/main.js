@@ -1,4 +1,5 @@
-const {Client, Sprite, ConnectionManager, ControlInterface, TrackList, NetworkWrapper, Rectangle, Line, Point, Circle, GameLoop, GameCanvas, GUI} = require('electron-game-util');
+const {Client, Sprite, ConnectionManager, ControlInterface, TrackList, NetworkWrapper, Rectangle, Line, Point, Circle, GameLoop, GameCanvas, GUI: GUILoader} = require('electron-game-util');
+let GUI;
 global.SIDE = ConnectionManager.CLIENT;
 require('../config.js');
 const path = require('path')
@@ -10,6 +11,7 @@ require('../ace-src-noconflict/ace.js');
 ace.config.set('basePath', path.join(__dirname, "../ace-src-noconflict"))
 window.editor = null;
 window.currentSpell = null;
+tutorialIDLocations = {};
 
 global.markTime = (event, dir)=>{
   if (!DO_CONNECTION_LOG) return;
@@ -23,6 +25,9 @@ global.markTime = (event, dir)=>{
 
 global.$ = require('jquery');
 require('bootstrap');
+let client = new Client('http://' + host, 2000);
+
+connection = new ConnectionManager(SIDE, client);
 
 const Entity = require('../classes/Entity.js');
 const Wall = require('../classes/Wall.js');
@@ -32,17 +37,16 @@ const World = require('../classes/World.js');
 const Inventory = require('../classes/Inventory.js');
 const ItemEntity = require('../classes/ItemEntity.js');
 const Teleporter = require('../classes/Teleporter.js');
+const Building = require('../classes/Building.js');
+const Counter = require('../classes/Counter.js');
 const Spell = require('../classes/Spell.js');
 const {jsParser, jsonParser, mdParser} = require('../classes/Syntax.js');
-
-let client;
 
 let playerID = null;
 let myPlayer = null;
 
 function ready(){
 
-  client = new Client('http://' + host, 2000);
 
   $('#killed').hide();
   $('#load-container').hide();
@@ -60,9 +64,6 @@ function ready(){
     ).slideDown('fast').delay(timeout).slideUp('slow', function(){$(this).remove()});
     $("#notifier").prepend(elem)
   }
-
-  connection = new ConnectionManager(SIDE, client);
-
   connection.addTrackList(Entity.list);
   connection.addTrackList(Wall.list);
   connection.addTrackList(Enemy.list);
@@ -71,17 +72,19 @@ function ready(){
   connection.addTrackList(Inventory.list);
   connection.addTrackList(ItemEntity.list);
   connection.addTrackList(Teleporter.list);
+  connection.addTrackList(Building.list);
+  connection.addTrackList(Counter.list);
   connection.addTrackList(Spell.list);
 
   require('../guis.js');
-
-  GUI.registerAll($("#gui-list").get(0));
 
   $('#login').submit((e)=>{
     $("#invalid-user-feedback").text("")
     $("#valid-user-feedback").text("")
     $("#invalid-pass-feedback").text("")
     $("#valid-pass-feedback").text("")
+    $("#user").get(0).setCustomValidity("");
+    $("#pass").get(0).setCustomValidity("");
     e.preventDefault();
     let name = $("#user").val();
     let pass = $("#pass").val();
@@ -89,8 +92,8 @@ function ready(){
       markTime('login', 'send');
       client.send('login', {name, pass}, (suc, res)=>{
         if (!suc){
-          $("#user").get(0).setCustomValidity("Incorrect Username");
-          $("#invalid-user-feedback").text(res=="Invalid Username"?"The provided username does not macth any existing accounts.":"")
+          $("#user").get(0).setCustomValidity("Invalid Username");
+          $("#invalid-user-feedback").text(res=="Invalid Username"?"The provided username does not macth any existing accounts.":(res=="Player Connected"?"This account is already connected to this server.":""))
           $("#valid-user-feedback").text("");
           $("pass").val("");
           $("#pass").get(0).setCustomValidity("Incorrect Password");
@@ -180,6 +183,9 @@ function topOfDoc(){
 }
 
 function loadDoc(file){
+  if (file.charAt(0) == "#") {
+    file = tutorialIDLocations[file];
+  }
   fs.readFile(file, "utf-8", (err, data)=>{
     if (err) {
       notify("danger", "Could not load documentation.", "The documentation file at '" + file + "' could not be loaded. " + err.message, 10000)
@@ -426,9 +432,9 @@ function start(){
     window.onbeforeunload = (e)=>{
       console.log("Disconnecting...");
       connection.server.socket.disconnect(true);
-      dialog.showMessageBox({title:"Disconnected", message: "The client has disconnected."})
-      e.returnValue = '';
-      return true;
+      // dialog.showMessageBox({title:"Disconnected", message: "The client has disconnected."})
+      // e.returnValue = '';
+      // return true;
     };
     res(true);
 
@@ -444,6 +450,7 @@ function start(){
     //console.log(myPlayer.world);
     Wall.list.run('show', gc, myPlayer.world);
     Teleporter.list.run('show', gc, myPlayer.world);
+    Building.list.run('show', gc, myPlayer.world);
     ItemEntity.list.run('show', gc, myPlayer.world);
     Enemy.list.run('show', gc, myPlayer.world);
     Player.list.run('show', gc, myPlayer.world);
@@ -458,8 +465,8 @@ function start(){
     gc.fill(HEALTH_COLOUR);
     gc.cornerRect(10,10, (myPlayer.health / myPlayer.maxHealth) * 100, 15);
 
-    let offset = myPlayer.inventory.hotbarSize * 32;
-    for (let i = 0; i < myPlayer.inventory.hotbarSize; i ++){
+    let offset = myPlayer.inventory.hotbar.length * 32;
+    for (let i = 0; i < myPlayer.inventory.hotbar.length; i ++){
       gc.fill(0,0,0,0.7);
       gc.stroke(128,128,128);
       gc.rect(gc.w/2 - offset + 64 * i, 32, 64, 64);

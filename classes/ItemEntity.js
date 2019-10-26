@@ -4,7 +4,7 @@ const Player = require('./Player.js');
 
 let list = new TrackList(SIDE);
 
-class ItemEntity extends NetworkWrapper(CollisionGroup(Entity,'Item'), list) {
+class ItemEntity extends NetworkWrapper(CollisionGroup(Entity,'Item'), list, ["type", "count", "pickupDelay"]) {
   constructor(opts = {}){
     super(opts);
     let {type = 'stone', count = 1, pickupDelay = 0} = opts;
@@ -14,6 +14,7 @@ class ItemEntity extends NetworkWrapper(CollisionGroup(Entity,'Item'), list) {
   }
 
   update(pack){
+    super.update(pack);
     switch (SIDE) {
       case ConnectionManager.SERVER:
         if (this.pickupDelay <= 0){
@@ -25,32 +26,30 @@ class ItemEntity extends NetworkWrapper(CollisionGroup(Entity,'Item'), list) {
         } else {
           this.pickupDelay = Math.max(this.pickupDelay - 1, 0);
         }
-        super.update()
         break;
-      case ConnectionManager.CLIENT:
-        super.update(pack);
-        this.type = pack.type;
-        this.count = pack.count;
-        this.pickupDelay = pack.pickupDelay;
-        break;
+      // case ConnectionManager.CLIENT:
+      //   this.type = pack.type;
+      //   this.count = pack.count;
+      //   this.pickupDelay = pack.pickupDelay;
+      //   break;
     }
   }
 
-  getUpdatePkt(){
-    let pack = super.getUpdatePkt();
-    pack.count = this.count;
-    pack.type = this.type;
-    pack.pickupDelay = this.pickupDelay;
-    return pack;
-  }
+  // getUpdatePkt(){
+  //   let pack = super.getUpdatePkt();
+  //   pack.count = this.count;
+  //   pack.type = this.type;
+  //   pack.pickupDelay = this.pickupDelay;
+  //   return pack;
+  // }
 
-  getInitPkt(){
-    let pack = super.getInitPkt();
-    pack.count = this.count;
-    pack.type = this.type;
-    pack.pickupDelay = this.pickupDelay;
-    return pack;
-  }
+  // getInitPkt(){
+  //   let pack = super.getInitPkt();
+  //   pack.count = this.count;
+  //   pack.type = this.type;
+  //   pack.pickupDelay = this.pickupDelay;
+  //   return pack;
+  // }
 
   show(gc, world){
     if (world.netID != this.world.netID) return;

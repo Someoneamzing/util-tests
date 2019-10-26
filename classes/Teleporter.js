@@ -4,7 +4,7 @@ const World = require('./World.js');
 
 let list = new TrackList(SIDE);
 
-class Teleporter extends NetworkWrapper(CollisionGroup(Entity, 'Teleporter'),list) {
+class Teleporter extends NetworkWrapper(CollisionGroup(Entity, 'Teleporter'),list,["toX","toY","to"]) {
   constructor(opts){
     super(opts);
     this.to = opts.to;
@@ -15,6 +15,7 @@ class Teleporter extends NetworkWrapper(CollisionGroup(Entity, 'Teleporter'),lis
   }
 
   update(pack){
+    super.update(pack);
     switch(SIDE){
       case ConnectionManager.SERVER:
         let p = this.collision(this.x, this.y, false, 'Player');
@@ -23,13 +24,12 @@ class Teleporter extends NetworkWrapper(CollisionGroup(Entity, 'Teleporter'),lis
           p.x = this.toX;
           p.y = this.toY;
         }
-        super.update();
         break;
-      case ConnectionManager.CLIENT:
-        this.toX = pack.toX;
-        this.toY = pack.toY;
-        this.to = pack.to;
-        break;
+      // case ConnectionManager.CLIENT:
+      //   this.toX = pack.toX;
+      //   this.toY = pack.toY;
+      //   this.to = pack.to;
+      //   break;
     }
   }
 
@@ -42,21 +42,21 @@ class Teleporter extends NetworkWrapper(CollisionGroup(Entity, 'Teleporter'),lis
     ;
   }
 
-  getInitPkt(){
-    let pack = super.getInitPkt();
-    pack.to = this.to;
-    pack.toX = this.toX;
-    pack.toY = this.toY;
-    return pack;
-  }
+  // getInitPkt(){
+  //   let pack = super.getInitPkt();
+  //   pack.to = this.to;
+  //   pack.toX = this.toX;
+  //   pack.toY = this.toY;
+  //   return pack;
+  // }
 
-  getUpdatePkt(){
-    let pack = super.getUpdatePkt();
-    pack.to = this.to;
-    pack.toX = this.toX;
-    pack.toY = this.toY;
-    return pack;
-  }
+  // getUpdatePkt(){
+  //   let pack = super.getUpdatePkt();
+  //   pack.to = this.to;
+  //   pack.toX = this.toX;
+  //   pack.toY = this.toY;
+  //   return pack;
+  // }
 }
 
 list.setType(Teleporter);

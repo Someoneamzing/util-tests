@@ -1,4 +1,4 @@
-const {Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList} = require('electron-game-util');
+const {Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList, Circle} = require('electron-game-util');
 const EventEmitter = require('events');
 const Entity = require('./Entity.js');
 const Player = require('./Player.js');
@@ -50,7 +50,7 @@ class VM extends OldVM {
 
 let list = new TrackList(SIDE);
 
-class Spell extends NetworkWrapper(Object, list) {
+class Spell extends NetworkWrapper(Object, list, ["name", "player", "attack", "needsRecompile", "level"]) {
   constructor(opts = {}){
     super(opts);
     this.source = opts.source||"";
@@ -65,36 +65,36 @@ class Spell extends NetworkWrapper(Object, list) {
     if (SIDE == ConnectionManager.SERVER)Spell.reporter.newSpell(this);
   }
 
-  getUpdatePkt(){
-    let pack = super.getUpdatePkt();
-    pack.name = this.name;
-    pack.player = this.player;
-    pack.attack = this.attack;
-    pack.needsRecompile = this.needsRecompile;
-    pack.level = this.level;
-    return pack;
-  }
+  // getUpdatePkt(){
+  //   let pack = super.getUpdatePkt();
+  //   pack.name = this.name;
+  //   pack.player = this.player;
+  //   pack.attack = this.attack;
+  //   pack.needsRecompile = this.needsRecompile;
+  //   pack.level = this.level;
+  //   return pack;
+  // }
 
-  getInitPkt(){
-    let pack = super.getInitPkt();
-    pack.name = this.name;
-    pack.player = this.player;
-    pack.attack = this.attack;
-    pack.needsRecompile = this.needsRecompile;
-    pack.level = this.level;
-    return pack;
-  }
+  // getInitPkt(){
+  //   let pack = super.getInitPkt();
+  //   pack.name = this.name;
+  //   pack.player = this.player;
+  //   pack.attack = this.attack;
+  //   pack.needsRecompile = this.needsRecompile;
+  //   pack.level = this.level;
+  //   return pack;
+  // }
 
-  update(pack){
-    if (SIDE == ConnectionManager.CLIENT){
-      super.update(pack);
-      this.name = pack.name;
-      this.player = pack.player;
-      this.attack = pack.attack;
-      this.needsRecompile = pack.needsRecompile;
-      this.level = pack.level;
-    }
-  }
+  // update(pack){
+  //   if (SIDE == ConnectionManager.CLIENT){
+  //     super.update(pack);
+  //     this.name = pack.name;
+  //     this.player = pack.player;
+  //     this.attack = pack.attack;
+  //     this.needsRecompile = pack.needsRecompile;
+  //     this.level = pack.level;
+  //   }
+  // }
 
   remove(){
     Player.list.get(this.player).spells.splice(Player.list.get(this.player).spells.indexOf(this.netID),1);
@@ -225,7 +225,8 @@ if (SIDE == ConnectionManager.SERVER){
             log: (...rest)=>Spell.reporter.log(this.currSpell, ...rest),
             warn: (...rest)=>Spell.reporter.warn(this.currSpell, ...rest),
             error: (...rest)=>Spell.reporter.error(this.currSpell, ...rest)
-          }
+          },
+          playersInDistance: (dist)=>this.currPlayer.world.collisionTree.query(new Circle(this.currPlayer.x, this.currPlayer.y, dist), ["Player"]).getGroup('found')
         }
       })
       this.envs[1] = new VM({
@@ -264,6 +265,7 @@ if (SIDE == ConnectionManager.SERVER){
 
     run(spell){
       this._currSpell = spell;
+      this._currPlayer = require('./Player.js').list.get(spell.player);
       spell.execute(this.envs[0])
     }
 

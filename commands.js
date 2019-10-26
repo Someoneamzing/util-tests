@@ -3,6 +3,7 @@ const Wall = require('./classes/Wall.js');
 const Enemy = require('./classes/Enemy.js');
 const ItemEntity = require('./classes/ItemEntity.js');
 const Teleporter = require('./classes/Teleporter.js');
+const Item = require('./classes/Item.js');
 const {jsParser} = require('./classes/Syntax.js');
 
 let tp = new Command('tp', true, {type: "number", name: "x"}, {type: "number", name: "y"});
@@ -14,6 +15,7 @@ tp.setHandle((args,p)=>{
 
 let give = new Command('give', true, {type: "string", name: "type"}, {type: "number", name: "amount"}, {type: "JSON", name: "data"});
 give.setHandle((args, p)=>{
+  if (!Item.idExists(args.type)) return "Invalid item type '" + args.type + "'."
   p.inventory.add(args.type, args.amount, args.data?args.data:undefined);
   return "Gave " + args.amount + " of " + args.type + "."
 })

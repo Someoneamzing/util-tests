@@ -6,7 +6,7 @@ const ItemStack = require('./ItemStack.js');
 
 let list = new TrackList(SIDE);
 
-class Inventory extends NetworkWrapper(Object, list) {
+class Inventory extends NetworkWrapper(Object, list, ["list", "hotbar", "selectedSlot"]) {
   constructor(opts = {}) {
     let {size = 1,hotbarSize = 0, list = [], hotbar = [], selectedSlot = 0} = opts;
     super(opts);
@@ -29,32 +29,32 @@ class Inventory extends NetworkWrapper(Object, list) {
     return this.hotbar[this.selectedSlot];
   }
 
-  getUpdatePkt(){
-    let pack = super.getUpdatePkt();
-    pack.list = this.list;
-    pack.hotbar = this.hotbar;
-    pack.selectedSlot = this.selectedSlot;
-    return pack;
-  }
+  // getUpdatePkt(){
+  //   let pack = super.getUpdatePkt();
+  //   pack.list = this.list;
+  //   pack.hotbar = this.hotbar;
+  //   pack.selectedSlot = this.selectedSlot;
+  //   return pack;
+  // }
 
-  getInitPkt(){
-    let pack = super.getInitPkt();
-    pack.size = this.size;
-    pack.hotbarSize = this.hotbarSize;
-    pack.list = this.list;
-    pack.hotbar = this.hotbar;
-    pack.selectedSlot = this.selectedSlot;
-    return pack;
-  }
+  // getInitPkt(){
+  //   let pack = super.getInitPkt();
+  //   pack.size = this.size;
+  //   pack.hotbarSize = this.hotbarSize;
+  //   pack.list = this.list;
+  //   pack.hotbar = this.hotbar;
+  //   pack.selectedSlot = this.selectedSlot;
+  //   return pack;
+  // }
 
-  update(pack){
-    if (SIDE == ConnectionManager.CLIENT){
-      super.update(pack);
-      this.list = pack.list;
-      this.hotbar = pack.hotbar;
-      this.selectedSlot = pack.selectedSlot;
-    }
-  }
+  // update(pack){
+  //   if (SIDE == ConnectionManager.CLIENT){
+  //     super.update(pack);
+  //     this.list = pack.list;
+  //     this.hotbar = pack.hotbar;
+  //     this.selectedSlot = pack.selectedSlot;
+  //   }
+  // }
 
   drop(from,slot,amount=Infinity,x = 0,y = 0){
     // let type = this[from][slot].type;
@@ -68,6 +68,7 @@ class Inventory extends NetworkWrapper(Object, list) {
     let item = this[from][slot].split(amount<this[from][slot].count?amount:this[from][slot].count);
     if (this[from][slot].count <= 0) this[from][slot] = null;
     new ItemEntity({x,y,pickupDelay: 100, ...item});
+    this.dirtyProps[from] = true;
     return item.count;
   }
 
@@ -75,15 +76,16 @@ class Inventory extends NetworkWrapper(Object, list) {
     if (from == 'any'){
       let int = this.getFirst(slot);
       slot = int.slot;
-      from = int.from;
+      from = {'hotbar':'hotbar','inventory': 'list'}[int.from];
       if (slot <= -1) return;
     }
-    let type = this[{'hotbar':'hotbar','inventory': 'list'}[from]][slot].type;
+    let type = this[from][slot].type;
     if (type == null) return 0;
     let count = Math.min(this[from][slot].count,amount);
     if (count == 0) return 0;
     this[from][slot].count -= count;
     if(this[from][slot].count <= 0) this[from][slot].type = null;
+    this.dirtyProps[from] = true;
     return count;
   }
 
@@ -130,17 +132,25 @@ class Inventory extends NetworkWrapper(Object, list) {
           if (!this.hotbar[i]) this.hotbar[i] = new ItemStack(type, 0, data);
           let item = this.hotbar[i];
           amount -= item.add(amount);
+          this.dirtyProps["hotbar"] = true;
           if (amount <= 0) break;
         }
-        if (amount <= 0) return total;
+        if (amount <= 0) {
+          return total;
+        }
         for (let i = 0; i < this.size; i ++){
           if(this.list[i] && (this.list[i].count > maxStack || this.list[i].type != type || JSON.stringify(this.list[i].data) != dataString)) continue;
           if (!this.list[i]) this.list[i] = new ItemStack(type, 0, data);
           let item = this.list[i];
           amount -= item.add(amount);
+          this.dirtyProps["list"] = true;
           if (amount <= 0) break;
         }
-        if (amount <= 0) return total;
+        if (amount <= 0) {
+          return total;
+        }
+        this.dirtyProps["list"] = true;
+        this.dirtyProps["hotbar"] = true;
         return total - amount;
         break;
 
@@ -150,6 +160,7 @@ class Inventory extends NetworkWrapper(Object, list) {
           if (!this.hotbar[slot]) this.hotbar[slot] = new ItemStack(type, 0, data);
           let item = this.hotbar[slot];
           amount -= item.add(amount);
+          this.dirtyProps["hotbar"] = true;
           return total - amount;
         }
         for(let i = 0; i < this.hotbarSize; i ++){
@@ -157,9 +168,13 @@ class Inventory extends NetworkWrapper(Object, list) {
           if(!this.hotbar[i]) this.hotbar[i] = new ItemStack(type, 0, data);
           let item = this.hotbar[i];
           amount -= item.add(amount);
+          this.dirtyProps["hotbar"] = true;
           if (amount <= 0) break;
         }
-        if (amount <= 0) return total;
+        if (amount <= 0) {
+          return total;
+        }
+        this.dirtyProps["hotbar"] = true;
         return total - amount;
         break;
 
@@ -169,6 +184,7 @@ class Inventory extends NetworkWrapper(Object, list) {
           if(!this.list[slot]) this.list[slot] = new ItemStack(type, 0, data);
           let item = this.list[slot];
           amount -= item.add(amount);
+          this.dirtyProps["list"] = true;
           return total - amount;
         }
         for (let i = 0; i < this.size; i ++){
@@ -176,9 +192,13 @@ class Inventory extends NetworkWrapper(Object, list) {
           if(!this.list[i]) this.list[i] = new ItemStack(type, 0, data);
           let item = this.list[i];
           amount -= item.add(amount);
+          this.dirtyProps["list"] = true;
           if (amount <= 0) break;
         }
-        if (amount <= 0) return total;
+        if (amount <= 0) {
+          return total;
+        }
+        this.dirtyProps["list"] = true;
         return total - amount;
         break;
     }
@@ -193,6 +213,7 @@ class Inventory extends NetworkWrapper(Object, list) {
     } else {
       this[to=='inventory'?'list':to][slot].set(amount);
     }
+    this.dirtyProps[to=='inventory'?'list':to] = true;
     return true;
   }
 
@@ -203,6 +224,8 @@ class Inventory extends NetworkWrapper(Object, list) {
     for (let i = 0; i < this.hotbarSize;i++){
       this.hotbar[i] = null;
     }
+    this.dirtyProps["list"] = true;
+    this.dirtyProps["hotbar"] = true;
   }
 }
 

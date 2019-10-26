@@ -4,7 +4,7 @@ const Player = require('./Player.js');
 
 let list = new TrackList(SIDE);
 
-class Enemy extends NetworkWrapper(CollisionGroup(Entity, 'Enemy'),list) {
+class Enemy extends NetworkWrapper(CollisionGroup(Entity, 'Enemy'),list, ["attackDamage", "state", "targetID"]) {
   constructor(opts = {}){
     super(opts);
     let {attackDamage = 5} = opts;
@@ -35,6 +35,11 @@ class Enemy extends NetworkWrapper(CollisionGroup(Entity, 'Enemy'),list) {
         break;
     }
     gc.rect(this.x, this.y, this.w, this.h);
+    if (this.damageTime > 0) {
+      gc.fill(255,0,0,(this.damageTime)/30);
+      gc.noStroke();
+      gc.rect(this.x, this.y, this.w, this.h);
+    }
     gc.fill(HEALTH_BG_COLOUR);
     gc.stroke('grey');
     gc.rect(this.x, this.y - this.h/2 - 10, 32, 5);
@@ -44,6 +49,7 @@ class Enemy extends NetworkWrapper(CollisionGroup(Entity, 'Enemy'),list) {
   }
 
   update(pack){
+    super.update(pack);
     switch(SIDE){
       case ConnectionManager.SERVER:
         let near;
@@ -144,33 +150,25 @@ class Enemy extends NetworkWrapper(CollisionGroup(Entity, 'Enemy'),list) {
         //  this.cooldown = Math.max(this.cooldown - 1, 0);
         // }
 
-        super.update()
-        break;
-
-      case ConnectionManager.CLIENT:
-        super.update(pack);
-        this.attackDamage = pack.attackDamage;
-        this.state = pack.state;
-        this.targetID = pack.targetID;
         break;
     }
   }
 
-  getUpdatePkt(){
-    let pack = super.getUpdatePkt();
-    pack.attackDamage = this.attackDamage;
-    pack.state = this.state;
-    pack.targetID = this.targetID;
-    return pack;
-  }
+  // getUpdatePkt(){
+  //   let pack = super.getUpdatePkt();
+  //   pack.attackDamage = this.attackDamage;
+  //   pack.state = this.state;
+  //   pack.targetID = this.targetID;
+  //   return pack;
+  // }
 
-  getInitPkt(){
-    let pack = super.getUpdatePkt();
-    pack.attackDamage = this.attackDamage;
-    pack.state = this.state;
-    pack.targetID = this.targetID;
-    return pack;
-  }
+  // getInitPkt(){
+  //   let pack = super.getUpdatePkt();
+  //   pack.attackDamage = this.attackDamage;
+  //   pack.state = this.state;
+  //   pack.targetID = this.targetID;
+  //   return pack;
+  // }
 
   remove(){
     super.remove();

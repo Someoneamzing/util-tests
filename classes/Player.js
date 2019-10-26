@@ -1,4 +1,4 @@
-const {Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList} = require('electron-game-util');
+const {Rectangle, Point, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList} = require('electron-game-util');
 const Entity = require('./Entity.js');
 const ItemEntity = require('./ItemEntity.js');
 const Item = require('./Item.js');
@@ -8,7 +8,7 @@ const Spell = require('./Spell.js');
 
 let list = new TrackList(SIDE);
 
-class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
+class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list, ["mouse", "name", "inventoryID", "spells"]) {
   constructor(opts){
     super(opts);
     const {spells = []} = opts;
@@ -59,6 +59,11 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
     gc.fill(153, 0, 255);
     gc.stroke(92, 0, 153);
     gc.rect(this.x, this.y, this.w, this.h);
+    if (this.damageTime > 0) {
+      gc.fill(255,0,0,(this.damageTime)/30);
+      gc.noStroke();
+      gc.rect(this.x, this.y, this.w, this.h);
+    }
     gc.fill('black');
     gc.noStroke();
     gc.textAlign('center', 'bottom');
@@ -72,6 +77,7 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
   }
 
   update(pack){
+    super.update(pack);
     switch(SIDE){
       case ConnectionManager.SERVER:
         this.controls = connection.connections[this.socketID].controls;
@@ -79,6 +85,13 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
           let mouse = this.controls.mouse;
           this.hsp = (Number(this.controls.keys["D"]||0) - Number(this.controls.keys['A']||0)) * this.walkSpeed;
           this.vsp = (Number(this.controls.keys["S"]||0) - Number(this.controls.keys['W']||0)) * this.walkSpeed;
+          if (mouse.right == true && this.lastRight == false){
+            console.log(mouse.x, mouse.y);
+            let buildings = this.world.collisionTree.query(new Point(mouse.x, mouse.y), ['Building']).getGroup('found');
+            if (buildings.length > 0) {
+              buildings[0].use(this);
+            }
+          }
           if (this.inventory.selected){
             if (mouse.left == true && this.lastLeft == false){
               Item.attack(this.inventory.selected, this);
@@ -93,37 +106,35 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list) {
           this.lastRight = mouse.right;
           this.lastMiddle = mouse.middle;
         }
-
-        super.update()
         break;
 
-      case ConnectionManager.CLIENT:
-        super.update(pack);
-        this.mouse = pack.mouse;
-        this.name = pack.name;
-        this.inventoryID = pack.inventoryID;
-        this.spells = pack.spells;
-        break;
+      // case ConnectionManager.CLIENT:
+      //   super.update(pack);
+      //   this.mouse = pack.mouse;
+      //   this.name = pack.name;
+      //   this.inventoryID = pack.inventoryID;
+      //   this.spells = pack.spells;
+      //   break;
     }
   }
 
-  getUpdatePkt(){
-    let pack = super.getUpdatePkt();
-    if (this.controls) {pack.mouse = {x: this.controls.mouse.x, y: this.controls.mouse.y};} else {pack.mouse = {x: 0, y: 0}}
-    pack.inventoryID = this.inventoryID;
-    pack.name = this.name;
-    pack.spells = this.spells;
-    return pack;
-  }
+  // getUpdatePkt(){
+  //   let pack = super.getUpdatePkt();
+  //   if (this.controls) {pack.mouse = {x: this.controls.mouse.x, y: this.controls.mouse.y};} else {pack.mouse = {x: 0, y: 0}}
+  //   pack.inventoryID = this.inventoryID;
+  //   pack.name = this.name;
+  //   pack.spells = this.spells;
+  //   return pack;
+  // }
 
-  getInitPkt(){
-    let pack = super.getInitPkt();
-    pack.mouse = {x: 0, y: 0};
-    pack.inventoryID = this.inventoryID;
-    pack.name = this.name;
-    pack.spells = this.spells;
-    return pack;
-  }
+  // getInitPkt(){
+  //   let pack = super.getInitPkt();
+  //   pack.mouse = {x: 0, y: 0};
+  //   pack.inventoryID = this.inventoryID;
+  //   pack.name = this.name;
+  //   pack.spells = this.spells;
+  //   return pack;
+  // }
 
   remove(){
     delete Player.nameMap[this.name];
