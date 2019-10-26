@@ -14,7 +14,7 @@
     "ace-min-noconflict": "^1.1.9",
     "bootstrap": "^4.1.3",
     "electron": "^4.0.0-beta.3",
-    "electron-game-util": "../electron-game-util",
+    "electron-game-util": "../../games/electron-game-util",
     "jquery": "^3.3.1",
     "lokijs": "^1.5.5",
     "opn": "^5.4.0",
