@@ -40,6 +40,7 @@ const Teleporter = require('../classes/Teleporter.js');
 const Building = require('../classes/Building.js');
 const Counter = require('../classes/Counter.js');
 const Spell = require('../classes/Spell.js');
+const Robot = require('../classes/Robot.js');
 const {jsParser, jsonParser, mdParser} = require('../classes/Syntax.js');
 
 let playerID = null;
@@ -67,6 +68,7 @@ function ready(){
   connection.addTrackList(Entity.list);
   connection.addTrackList(Wall.list);
   connection.addTrackList(Enemy.list);
+  connection.addTrackList(Robot.list);
   connection.addTrackList(Player.list);
   connection.addTrackList(World.list);
   connection.addTrackList(Inventory.list);
@@ -453,6 +455,7 @@ function start(){
     Building.list.run('show', gc, myPlayer.world);
     ItemEntity.list.run('show', gc, myPlayer.world);
     Enemy.list.run('show', gc, myPlayer.world);
+    Robot.list.run('show', gc, myPlayer.world);
     Player.list.run('show', gc, myPlayer.world);
     gc.fill("black");
     gc.font('30px Bungee')

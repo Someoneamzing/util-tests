@@ -50,10 +50,11 @@ class VM extends OldVM {
 
 let list = new TrackList(SIDE);
 
-class Spell extends NetworkWrapper(Object, list, ["name", "player", "attack", "needsRecompile", "level"]) {
+class Spell extends NetworkWrapper(Object, list, ["name", "player", "attack", "needsRecompile", "level", "type"]) {
   constructor(opts = {}){
     super(opts);
     this.source = opts.source||"";
+    this.type = opts.type||"spell"
     this.needsRecompile = true;
     this.recompReason = "this being it's first run";
     this.script = null;//new VMScript(this.source,{filename: "UserSpell" + Spell.list.getIds().length});
@@ -118,8 +119,8 @@ class Spell extends NetworkWrapper(Object, list, ["name", "player", "attack", "n
 
   compile(){
     try{
-      if(this.source.match(/while\s*\(\s*true\s*\)/g)){
-        throw new SyntaxError("Spell scripts cannot contain while(true) statements")
+      if(this.type=="spell"&&this.source.match(/while\s*\(\s*true\s*\)/g)){
+        throw new SyntaxError("Spell scripts cannot contain while(true) statements. If this is intended for a Robot make sure to change this option in the editor.")
       }
       if(!this.player){
         let err = new Error("Cannot compile without a player bound");
