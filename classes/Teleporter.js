@@ -16,15 +16,13 @@ class Teleporter extends NetworkWrapper(CollisionGroup(Entity, 'Teleporter'),lis
 
   update(pack){
     super.update(pack);
-    switch(SIDE){
-      case ConnectionManager.SERVER:
-        let p = this.collision(this.x, this.y, false, 'Player');
-        if (p){
-          p.world = World.list.get(this.to);
-          p.x = this.toX;
-          p.y = this.toY;
-        }
-        break;
+    if(SIDE == ConnectionManager.SERVER){
+      let p = this.collision(this.x, this.y, false, 'Player');
+      if (p){
+        p.world = World.list.get(this.to);
+        p.x = this.toX;
+        p.y = this.toY;
+      }
       // case ConnectionManager.CLIENT:
       //   this.toX = pack.toX;
       //   this.toY = pack.toY;

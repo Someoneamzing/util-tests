@@ -15,18 +15,16 @@ class ItemEntity extends NetworkWrapper(CollisionGroup(Entity,'Item'), list, ["t
 
   update(pack){
     super.update(pack);
-    switch (SIDE) {
-      case ConnectionManager.SERVER:
-        if (this.pickupDelay <= 0){
-          let p = this.collision(this.x, this.y, false, 'Player');
-          if (p) {
-            this.count -= p.inventory.add(this.type, this.count);
-            if (this.count <= 0) this.remove();
-          }
-        } else {
-          this.pickupDelay = Math.max(this.pickupDelay - 1, 0);
+    if (SIDE == ConnectionManager.SERVER){
+      if (this.pickupDelay <= 0){
+        let p = this.collision(this.x, this.y, false, 'Player');
+        if (p) {
+          this.count -= p.inventory.add(this.type, this.count);
+          if (this.count <= 0) this.remove();
         }
-        break;
+      } else {
+        this.pickupDelay = Math.max(this.pickupDelay - 1, 0);
+      }
       // case ConnectionManager.CLIENT:
       //   this.type = pack.type;
       //   this.count = pack.count;

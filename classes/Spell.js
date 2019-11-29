@@ -7,10 +7,13 @@ const Item = require('./Item.js');
 const World = require('./World.js');
 const Inventory = require('./Inventory.js');
 const ItemStack = require('./ItemStack.js');
+/* <no-client> */
 const fs = require('fs');
-const path = require('path');
 const {VMScript: BrokenScript, VM: OldVM, NodeVM: OldNodeVM} = require('vm2');
+/* </no-client> */
+const path = require('path');
 
+/* <no-client> */
 class VMScript extends BrokenScript {
   compile(){
     delete this._compiled;
@@ -47,6 +50,7 @@ class VM extends OldVM {
     }
   }
 }
+/* </no-client> */
 
 let list = new TrackList(SIDE);
 
@@ -61,8 +65,9 @@ class Spell extends NetworkWrapper(Object, list, ["name", "player", "attack", "n
     this.player = null;
     this.name = opts.name||"";
     this.level = opts.level||"low";
-
-    if (SIDE == ConnectionManager.SERVER)Spell.reporter.newSpell(this);
+    /* <no-client> */
+    if (SIDE == ConnectionManager.SERVER) Spell.reporter.newSpell(this);
+    /* </no-client> */
   }
 
   // getUpdatePkt(){
@@ -115,7 +120,7 @@ class Spell extends NetworkWrapper(Object, list, ["name", "player", "attack", "n
     this.source = source;
     this.needsRecompile = true;
   }
-
+  // <no-client>
   compile(){
     try{
       if(this.source.match(/while\s*\(\s*true\s*\)/g)){
@@ -181,7 +186,11 @@ class Spell extends NetworkWrapper(Object, list, ["name", "player", "attack", "n
       return false;
     }
   }
+
+  //</no-client>
 }
+
+/* <no-client> */
 if (SIDE == ConnectionManager.SERVER){
   class SpellReporter extends EventEmitter {
     constructor(){
@@ -279,6 +288,7 @@ if (SIDE == ConnectionManager.SERVER){
   Spell.reporter = new SpellReporter();
   Spell.sandbox = new SpellSandboxer();
 }
+/* </no-client> */
 
 list.setType(Spell);
 

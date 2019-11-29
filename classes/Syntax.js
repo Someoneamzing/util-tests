@@ -5,8 +5,8 @@ class Element {
     this.blocking = blocking;
   }
 
-  process(found){
-    return this.handler(found);
+  process(found, groups){
+    return this.handler(found, groups);
   }
 }
 
@@ -29,8 +29,8 @@ class Parser {
       data = data.replace(e.token, (found, ...groups)=>{
         let offset = groups[groups.length-2];
         if(e.blocking){
-          return "\n</p>" + e.process(found) + "<p>\n";
-        } else return e.process(found);
+          return "\n</p>" + e.process(found, groups) + "<p>\n";
+        } else return e.process(found, groups);
       });
     }
 
@@ -76,9 +76,10 @@ let mdParser = new Parser();
     return "<blockquote>" + found + "</blockquote>";
   }))
 
-  mdParser.addElement(new Element(/```(?:\r\n|\r|\n)(((?:\r\n|\r|\n)|.)+?)(?:\r\n|\r|\n)```/mg, true, function(found){
-    let res = "<code>";
-    found = found.replace(this.token, "$1");
+  mdParser.addElement(new Element(/```(\{\w+\})?(?:\r\n|\r|\n)(((?:\r\n|\r|\n)|.)+?)(?:\r\n|\r|\n)```/mg, true, function(found, groups){
+    let res = "<code " + ((typeof groups[0] == 'string' && groups[0] != "")?'data-language="'+groups[0].replace(/[}{]/g,"")+'"':"") + ">";
+    console.log("Code block language is " + groups[0]);
+    found = found.replace(this.token, "$2");
     found = found.replace(/\r/g, "\\r");
     found = found.replace(/\n/g, "\\n");
     found = found.replace(/\*/g, "&#42;")
@@ -128,7 +129,7 @@ let mdParser = new Parser();
 
   mdParser.addElement(new Element(/`(.+?)`/g, false, function (found){
     let res = "<samp>";
-    found = found.replace(this.token, "$1");
+    found = found.replace(this.token, "$1").replace(/\>/g, "&gt;").replace(/\</g,"&lt;");
     res += found + "</samp>";
     return res;
   }))

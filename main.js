@@ -3,6 +3,14 @@ require('./config.js');
 const uuid = require('uuidv4');
 const fs = require('fs');
 const path = require('path');
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res)=>res.sendFile(path.join(__dirname, '/client/index.html')));
+
+app.use('/', express.static('client'));
+app.use('/node_modules', express.static('node_modules'));
+
 window.$ = require('jquery');
 
 
@@ -36,6 +44,8 @@ const Building = require('./classes/Building.js');
 const Counter = require('./classes/Counter.js');
 const Command = require('./classes/Command.js');
 const Spell = require('./classes/Spell.js');
+const Arrow = require('./classes/Arrow.js');
+const LootTable = require('./classes/LootTable.js');
 const loki = require('lokijs');
 const db = new loki('data.db', {autosave: true});
 let users;
@@ -55,6 +65,7 @@ connection.addTrackList(Teleporter.list);
 connection.addTrackList(Building.list);
 connection.addTrackList(Counter.list);
 connection.addTrackList(Spell.list);
+connection.addTrackList(Arrow.list);
 
 require('./items.js');
 require('./commands.js');
@@ -115,13 +126,18 @@ loop.setLoop(()=>{
   connection.remove();
 })
 
-function start(){
+async function start(){
   if (DO_CONNECTION_LOG) fs.writeFileSync(path.join(__dirname, 'connection-log.txt'), "----------------------------------------------------------------------------------------\n--------------------------------------START NEW LOG--------------------------------------\n----------------------------------------------------------------------------------------\n", {encoding: "utf-8", flag: "as"});
 
   document.getElementById('start-server').innerText = "Running ...";
   document.getElementById('start-server').disabled = true;
+  echo("Hosting game files... ");
+  app.listen(3000);
   echo("Running server...");
-  echo("Initialising Worlds...")
+  echo("Loading loot tables...");
+  await LootTable.parseFolder('default', './loot_tables');
+
+  echo("Initialising Worlds...");
   new World({netID: 'main', displayName: 'Homeworld'});
   new World({netID: 'alien', displayName: 'Martian'});
 

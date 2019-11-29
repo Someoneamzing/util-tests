@@ -1,7 +1,7 @@
-const ItemEntity = require('./ItemEntity.js');
+// const ItemEntity = require('./ItemEntity.js');
 const Item = require('./Item.js');
-const World = require('./World.js');
-const Inventory = require('./Inventory.js');
+// const World = require('./World.js');
+// const Inventory = require('./Inventory.js');
 
 class ItemStack {
   constructor(type, count, data){
@@ -24,7 +24,7 @@ class ItemStack {
   }
 
   set(amount){
-    this.count = Math.max(Item.get(this.type).maxStack, Math.min(0, amount));
+    this.count = Math.min(Item.get(this.type).maxStack, Math.max(0, amount));
   }
 
   split(amount){

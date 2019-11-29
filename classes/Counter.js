@@ -14,12 +14,8 @@ class Counter extends NetworkWrapper(Building, list, ["counter"]) {
 
   update(pack){
     super.update(pack);
-    switch(SIDE){
-      case ConnectionManager.SERVER:
+    if (SIDE == ConnectionManager.SERVER){
         Math.random() > 0.9?this.counter = (this.counter + 1) % this.resetTime:'';
-
-        break;
-
     }
   }
 

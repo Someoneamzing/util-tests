@@ -44,6 +44,22 @@ summon.setHandle((args, p)=>{
   }
 })
 
+let loot = new Command('loot', true, {type: "string", name: "name"})
+
+loot.setHandle((args, p)=>{
+  let table = LootTable.list.get(args.name);
+  if (table) {
+    let out = table.generate();
+    for (let stack of out) {
+      console.log("Stack: ",stack);
+      p.inventory.add(stack.type, stack.count, stack.data);
+    }
+    return `Spawned ${out.length} items from table '${args.name}'.`;
+  } else {
+    return `Table '${args.name}' does not exist.`
+  }
+})
+
 let code = new Command('code', false, {type: "string", name: "text"});
 code.setHandle((args, p)=>{
   let res = jsParser.parse(args.text);
