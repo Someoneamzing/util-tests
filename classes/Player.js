@@ -176,8 +176,6 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list, ["mou
           } else {
             this.staminaCooldown --;
           }
-        }
-      }
 
       // case ConnectionManager.CLIENT:
       //   super.update(pack);
