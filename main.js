@@ -139,7 +139,12 @@ async function saveGame(){
 
 async function savePlayers(){
   let name = global.WORLD_NAME;
-  await fsp.writeFile(`saves/${name}/players.json`, Player.getSaveData(), 'utf-8');
+  let data = Player.getSaveData();
+  let oldData = JSON.parse(await fsp.readFile(`saves/${name}/players.json`, 'utf-8'));
+  for (let name in data) {
+    oldData[name] = data[name];
+  }
+  await fsp.writeFile(`saves/${name}/players.json`, JSON.stringify(oldData), 'utf-8');
 }
 
 async function start(){
