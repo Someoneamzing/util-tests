@@ -39,7 +39,9 @@ const ItemEntity = require('../classes/ItemEntity.js');
 const Teleporter = require('../classes/Teleporter.js');
 const Building = require('../classes/Building.js');
 const Counter = require('../classes/Counter.js');
+const Chest = require('../classes/Chest.js');
 const Spell = require('../classes/Spell.js');
+const GUIInventory = require('../classes/GUIInventory.js');
 // const Robot = require('../classes/Robot.js');
 const {jsParser, jsonParser, mdParser} = require('../classes/Syntax.js');
 
@@ -76,7 +78,10 @@ function ready(){
   connection.addTrackList(Teleporter.list);
   connection.addTrackList(Building.list);
   connection.addTrackList(Counter.list);
+  connection.addTrackList(Chest.list);
   connection.addTrackList(Spell.list);
+
+  require('../items.js')
 
   require('../guis.js');
 
@@ -222,7 +227,7 @@ function start(){
   let loop = new GameLoop('main', 1000/60);
   let gc = new GameCanvas({full: true});
 
-  let controls = new ControlInterface(gc, client);
+  global.controls = new ControlInterface(gc, client);
   let damageTimer = 0;
 
 

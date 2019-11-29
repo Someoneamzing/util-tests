@@ -1,3 +1,6 @@
+img {
+  image-rendering: crisp-edges;
+}
 
 html, body {
   padding: 0;

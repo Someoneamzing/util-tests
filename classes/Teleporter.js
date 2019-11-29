@@ -2,7 +2,7 @@ const {Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList, 
 const Entity = require('./Entity.js');
 const World = require('./World.js');
 
-let list = new TrackList(SIDE);
+let list = new TrackList(SIDE, true);
 
 class Teleporter extends NetworkWrapper(CollisionGroup(Entity, 'Teleporter'),list,["toX","toY","to"]) {
   constructor(opts){

@@ -3,10 +3,11 @@ const Entity = require('./Entity.js');
 const ItemEntity = require('./ItemEntity.js');
 const Item = require('./Item.js');
 const ItemStack = require('./ItemStack.js');
+const ItemData = require('./ItemData.js');
 
-let list = new TrackList(SIDE);
+let list = new TrackList(SIDE, false);
 
-class Inventory extends NetworkWrapper(Object, list, ["list", "hotbar", "selectedSlot"]) {
+class Inventory extends NetworkWrapper(Object, list, ["*list", "*hotbar", "selectedSlot", "size", "hotbarSize"]) {
   constructor(opts = {}) {
     let {size = 1,hotbarSize = 0, list = [], hotbar = [], selectedSlot = 0} = opts;
     super(opts);
@@ -17,16 +18,51 @@ class Inventory extends NetworkWrapper(Object, list, ["list", "hotbar", "selecte
     this.hotbar = [];
     this.clear();
     for(let i in list){
-      this.list[i] = list[i];
+      this.list[i] = list[i]?new ItemStack(list[i]):list[i];
     }
     for(let i in hotbar){
-      this.hotbar[i] = hotbar[i];
+      this.hotbar[i] = hotbar[i]?new ItemStack(hotbar[i]):hotbar[i];
     }
     this.selectedSlot = selectedSlot;
+    this.deepDirty = false;
   }
 
   get selected(){
     return this.hotbar[this.selectedSlot];
+  }
+
+  deserialise(prop, val) {
+    switch (prop) {
+      case "list":
+      case "hotbar":
+        console.log("Inv Update");
+        return val.map(e=>e?new ItemStack(e):e);
+        break;
+      default:
+        return val;
+    }
+  }
+
+  update(pack) {
+    super.update(pack);
+    if (SIDE == ConnectionManager.SERVER) {
+      if (this.list.some(e=>e?e.isDirty():false)) {
+        this.dirtyProps['list'] = true;
+        this.deepDirty = true;
+      }
+      if (this.hotbar.some(e=>e?e.isDirty():false)) {
+        this.dirtyProps['hotbar'] = true;
+        this.deepDirty = true;
+      }
+    }
+  }
+
+  isDirty(){
+    if (this.deepDirty || super.isDirty()) {
+      this.deepDirty = false;
+      return true;
+    }
+    return false;
   }
 
   // getUpdatePkt(){
@@ -116,7 +152,7 @@ class Inventory extends NetworkWrapper(Object, list, ["list", "hotbar", "selecte
     }
   }
 
-  add(type,amount,data = {},to = 'any',slot){
+  add(type,amount,data = new ItemData(),to = 'any',slot){
     let total = amount;
     let dataString = JSON.stringify(data);
     if (amount == 0){console.log('Error in amount');return 0;}
@@ -129,7 +165,7 @@ class Inventory extends NetworkWrapper(Object, list, ["list", "hotbar", "selecte
       case 'any':
         for(let i = 0; i < this.hotbarSize; i ++){
           if(this.hotbar[i] && (this.hotbar[i].count > maxStack || this.hotbar[i].type != type || JSON.stringify(this.hotbar[i].data) != dataString)) continue;
-          if (!this.hotbar[i]) this.hotbar[i] = new ItemStack(type, 0, data);
+          if (!this.hotbar[i]) this.hotbar[i] = new ItemStack(type, 0, dataString);
           let item = this.hotbar[i];
           amount -= item.add(amount);
           this.dirtyProps["hotbar"] = true;
@@ -140,7 +176,7 @@ class Inventory extends NetworkWrapper(Object, list, ["list", "hotbar", "selecte
         }
         for (let i = 0; i < this.size; i ++){
           if(this.list[i] && (this.list[i].count > maxStack || this.list[i].type != type || JSON.stringify(this.list[i].data) != dataString)) continue;
-          if (!this.list[i]) this.list[i] = new ItemStack(type, 0, data);
+          if (!this.list[i]) this.list[i] = new ItemStack(type, 0, dataString);
           let item = this.list[i];
           amount -= item.add(amount);
           this.dirtyProps["list"] = true;
@@ -156,8 +192,8 @@ class Inventory extends NetworkWrapper(Object, list, ["list", "hotbar", "selecte
 
       case 'hotbar':
         if(typeof slot != 'undefined'){
-          if(this.hotbar[slot] && (this.hotbar[slot].count > maxStack || this.hotbar[slot].type != type || JSON.stringify(this.hotbar[i].data) != dataString)) return 0;
-          if (!this.hotbar[slot]) this.hotbar[slot] = new ItemStack(type, 0, data);
+          if(this.hotbar[slot] && (this.hotbar[slot].count > maxStack || this.hotbar[slot].type != type || JSON.stringify(this.hotbar[slot].data) != dataString)) return 0;
+          if (!this.hotbar[slot]) this.hotbar[slot] = new ItemStack(type, 0, dataString);
           let item = this.hotbar[slot];
           amount -= item.add(amount);
           this.dirtyProps["hotbar"] = true;
@@ -165,7 +201,7 @@ class Inventory extends NetworkWrapper(Object, list, ["list", "hotbar", "selecte
         }
         for(let i = 0; i < this.hotbarSize; i ++){
           if(this.hotbar[i] && (this.hotbar[i].count > maxStack || this.hotbar[i].type != type || JSON.stringify(this.hotbar[i].data) != dataString)) continue;
-          if(!this.hotbar[i]) this.hotbar[i] = new ItemStack(type, 0, data);
+          if(!this.hotbar[i]) this.hotbar[i] = new ItemStack(type, 0, dataString);
           let item = this.hotbar[i];
           amount -= item.add(amount);
           this.dirtyProps["hotbar"] = true;
@@ -180,8 +216,8 @@ class Inventory extends NetworkWrapper(Object, list, ["list", "hotbar", "selecte
 
       case 'inventory':
         if(typeof slot != 'undefined'){
-          if(this.list[slot] && (this.list[slot].count > maxStack || this.list[slot].type != type || JSON.stringify(this.list[i].data) != dataString)) return 0;
-          if(!this.list[slot]) this.list[slot] = new ItemStack(type, 0, data);
+          if(this.list[slot] && (this.list[slot].count > maxStack || this.list[slot].type != type || JSON.stringify(this.list[slot].data) != dataString)) return 0;
+          if(!this.list[slot]) this.list[slot] = new ItemStack(type, 0, dataString);
           let item = this.list[slot];
           amount -= item.add(amount);
           this.dirtyProps["list"] = true;
@@ -189,7 +225,7 @@ class Inventory extends NetworkWrapper(Object, list, ["list", "hotbar", "selecte
         }
         for (let i = 0; i < this.size; i ++){
           if(this.list[i] && (this.list[i].count > maxStack || this.list[i].type != type || JSON.stringify(this.list[i].data) != dataString)) continue;
-          if(!this.list[i]) this.list[i] = new ItemStack(type, 0, data);
+          if(!this.list[i]) this.list[i] = new ItemStack(type, 0, dataString);
           let item = this.list[i];
           amount -= item.add(amount);
           this.dirtyProps["list"] = true;
@@ -204,12 +240,17 @@ class Inventory extends NetworkWrapper(Object, list, ["list", "hotbar", "selecte
     }
   }
 
-  set(to,slot,amount,type){
+  get(to, slot) {
+    if((!['hotbar','inventory'].includes(to)) || slot > this[to=='inventory'?'list':to].length-1) return false;
+    return this[to=='inventory'?'list':to][slot];
+  }
+
+  set(to,slot,amount,type,data){
     if(!['hotbar','inventory'].includes(to) || slot > this[to=='inventory'?'list':to].length-1) return false;
     // this[to=='inventory'?'list':to][slot] = {type: type?type:this[to=='inventory'?'list':to][slot].type, count: Math.min(99,Math.max(0,amount))};
     if (type) {
 
-      this[to=='inventory'?'list':to][slot] = new ItemStack(type, amount, data);
+      this[to=='inventory'?'list':to][slot] = new ItemStack(type, amount, JSON.stringify(data));
     } else {
       this[to=='inventory'?'list':to][slot].set(amount);
     }
@@ -217,15 +258,21 @@ class Inventory extends NetworkWrapper(Object, list, ["list", "hotbar", "selecte
     return true;
   }
 
-  clear(){
-    for (let i = 0; i < this.size;i++){
-      this.list[i] = null;
+  clear(from, slot){
+    if (from !== undefined && from !== null && slot !== undefined && slot !== null) {
+      this[from=='inventory'?'list':from][slot] = null;
+      this.dirtyProps[from=='inventory'?'list':from] = true;
+    } else {
+      for (let i = 0; i < this.size;i++){
+        this.list[i] = null;
+      }
+      for (let i = 0; i < this.hotbarSize;i++){
+        this.hotbar[i] = null;
+      }
+      this.dirtyProps["list"] = true;
+      this.dirtyProps["hotbar"] = true;
     }
-    for (let i = 0; i < this.hotbarSize;i++){
-      this.hotbar[i] = null;
-    }
-    this.dirtyProps["list"] = true;
-    this.dirtyProps["hotbar"] = true;
+
   }
 }
 

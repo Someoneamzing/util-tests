@@ -48,7 +48,7 @@ class VM extends OldVM {
   }
 }
 
-let list = new TrackList(SIDE);
+let list = new TrackList(SIDE, false);
 
 class Spell extends NetworkWrapper(Object, list, ["name", "player", "attack", "needsRecompile", "level", "type"]) {
   constructor(opts = {}){

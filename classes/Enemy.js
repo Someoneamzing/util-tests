@@ -1,10 +1,12 @@
 const {Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList, QueryResult, Line} = require('electron-game-util');
 const Entity = require('./Entity.js');
+const ItemEntity = require('./ItemEntity.js');
+const LootTable = require('./LootTable.js');
 const Player = require('./Player.js');
 
-let list = new TrackList(SIDE);
+let list = new TrackList(SIDE, true);
 
-class Enemy extends NetworkWrapper(CollisionGroup(Entity, 'Enemy'),list, ["attackDamage", "state", "targetID"]) {
+class Enemy extends NetworkWrapper(CollisionGroup(Entity, 'Enemy'),list, ["attackDamage", "state", "targetID", "maxRange", "walkSpeed"]) {
   constructor(opts = {}){
     super(opts);
     let {attackDamage = 5} = opts;
@@ -15,6 +17,15 @@ class Enemy extends NetworkWrapper(CollisionGroup(Entity, 'Enemy'),list, ["attac
     this.attackDamage = attackDamage;
     this.maxRange = 1000;
     this.state = 'wander';
+  }
+
+  kill(killer){
+    let loot = LootTable.get("main:entities/enemy").generate();
+    for (let stack of loot) {
+      console.log(stack);
+      new ItemEntity({world: this.worldID, x: this.x, y: this.y, pickupDelay: 30, ...stack})
+    }
+    super.kill(killer);
   }
 
   show(gc, world){

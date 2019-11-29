@@ -1,9 +1,9 @@
 const {Point, Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList, QueryResult} = require('electron-game-util');
 const World = require('./World.js');
 
-let list = new TrackList(SIDE, false);
+let list = new TrackList(SIDE, false, false);
 
-class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list, ["x", "y", "w", "h", "health", "maxHealth", "hsp", "vsp", "worldID", "damageTime"]) {
+class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list, ["x", "y", "w", "h", "health", "maxHealth", "hsp", "vsp", "worldID", "damageTime", "solid"]) {
   constructor(opts = {}){
     let {x = 0,y = 0,w = 32,h = 32,world = 'main'} = opts;
     super(opts,x,y,w,h);

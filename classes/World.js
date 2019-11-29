@@ -1,6 +1,6 @@
 const {Point, Circle, Rectangle, QuadTree, NetworkWrapper, QueryResult, ConnectionManager} = require('electron-game-util');
 
-let list = new TrackList(SIDE);
+let list = new TrackList(SIDE,false);
 
 class World extends NetworkWrapper(Object,list,["displayName"]){
   constructor(opts){

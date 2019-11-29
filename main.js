@@ -2,6 +2,7 @@ const {ipcRenderer} = require('electron');
 require('./config.js');
 const uuid = require('uuidv4');
 const fs = require('fs');
+const fsp = fs.promises;
 const path = require('path');
 window.$ = require('jquery');
 
@@ -34,8 +35,11 @@ const ItemEntity = require('./classes/ItemEntity.js');
 const Teleporter = require('./classes/Teleporter.js');
 const Building = require('./classes/Building.js');
 const Counter = require('./classes/Counter.js');
+const Chest = require('./classes/Chest.js');
 const Command = require('./classes/Command.js');
+const LootTable = require('./classes/LootTable.js');
 const Spell = require('./classes/Spell.js');
+const GUIInventory = require('./classes/GUIInventory.js');
 // const Robot = require('./classes/Robot.js');
 const loki = require('lokijs');
 const db = new loki('data.db', {autosave: true});
@@ -51,11 +55,12 @@ connection.addTrackList(Player.list);
 connection.addTrackList(World.list);
 connection.addTrackList(Enemy.list);
 // connection.addTrackList(Robot.list);
-connection.addTrackList(Inventory.list);
 connection.addTrackList(ItemEntity.list);
 connection.addTrackList(Teleporter.list);
 connection.addTrackList(Building.list);
 connection.addTrackList(Counter.list);
+connection.addTrackList(Chest.list);
+connection.addTrackList(Inventory.list);
 connection.addTrackList(Spell.list);
 
 require('./items.js');
@@ -103,6 +108,8 @@ window.onload = ()=>{
 
   document.getElementById('start-server').onclick = start;
 
+  document.getElementById('save-game').onclick = saveGame;
+
   window.addEventListener('beforeunload', (e)=>{
     markTime('server-reload', 'send');
     server.send('server-reload');
@@ -117,12 +124,32 @@ loop.setLoop(()=>{
   connection.remove();
 })
 
-function start(){
+async function saveGame(){
+  let name = global.WORLD_NAME;
+  echo("Saving game as '" + name + "'...");
+  let start = Date.now();
+  try {await fsp.mkdir('saves/' + name , {recursive:true})} catch (e) {}
+  let data = connection.serialiseLists();
+  await fsp.writeFile(`saves/${name}/data.json`, data, 'utf-8');
+  savePlayers();
+  echo("Done saving! Took " + (Date.now() - start) + " ms")
+}
+
+async function savePlayers(){
+  let name = global.WORLD_NAME;
+  await fsp.writeFile(`saves/${name}/players.json`, Player.getSaveData(), 'utf-8');
+}
+
+async function start(){
   if (DO_CONNECTION_LOG) fs.writeFileSync(path.join(__dirname, 'connection-log.txt'), "----------------------------------------------------------------------------------------\n--------------------------------------START NEW LOG--------------------------------------\n----------------------------------------------------------------------------------------\n", {encoding: "utf-8", flag: "as"});
 
   document.getElementById('start-server').innerText = "Running ...";
   document.getElementById('start-server').disabled = true;
+  document.getElementById('save-game').disabled = false;
+
   echo("Running server...");
+  echo("Loading LootTables");
+  await LootTable.loadDirectory("main","loot_tables")
   echo("Initialising Worlds...")
   new World({netID: 'main', displayName: 'Homeworld'});
   new World({netID: 'alien', displayName: 'Martian'});
@@ -158,10 +185,17 @@ function start(){
     })
   }
 
-  function playerConnected(socket, name, pass){
+  async function playerConnected(socket, name, pass){
 
     markTime('connected-to-server', 'emit');
-    let p = new Player({socketID: socket.id, name});
+    let data;
+    try {
+      data = JSON.parse(await fsp.readFile(`saves/${global.WORLD_NAME}/players.json`))[name] || {name, x: 0, y: 0};
+    } catch (e) {
+      data = {name, x: 0, y: 0};
+    }
+    console.log(data);
+    let p = new Player({socketID: socket.id, ...data});
 
     markTime('chat-msg', 'on');
     socket.on('chat-msg', (msg)=>{
@@ -239,6 +273,15 @@ function start(){
     });
 
   }
+
+  echo('Loading world...');
+  try {
+    connection.deserialise(fs.readFileSync(`saves/${global.WORLD_NAME}/data.json`, 'utf-8'))
+    echo('Done loading!')
+  } catch (e) {
+    echo("No world found or possible error in loading save. Generating new world.")
+  }
+
   echo('Waiting for connections...');
   markTime('connection', 'on');
   server.on('connection', (socket)=>{
@@ -252,11 +295,12 @@ function start(){
       }
     })
     markTime('disconnect', 'on');
-    socket.on('disconnect', (e)=>{
+    socket.on('disconnect', async (e)=>{
       let p = Player.getBySocket(socket);
       console.log(p);
       console.log("Client Disconnected");
       if (p) {
+        await savePlayers();
         markTime('chat-msg', 'send');
         server.send('chat-msg', {who: "", text: "<span style='color: yellow'>" + p.name + " disconnected.</span>"});
         p.remove();

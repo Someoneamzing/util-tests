@@ -3,3 +3,12 @@
   <gui-number-field placeholder="Reset Time" value="::resetTime" id="field" min="0" max="1000" x="15" y="45"></gui-number-field>
   <gui-button id="reset" text="Reset" click="::reset" x="15" y="75"></gui-button>
 </gui-container>
+<gui-container name="player-inventory" width="524" height="489">
+  <gui-inventory label="Inventory" id="player-inv" section="inventory" dirty="::inventoryDirty" inventory="::inventoryID" x="10" y="185" w="508" h="213"></gui-inventory>
+  <gui-inventory label="Hotbar" id="player-hotbar" section="hotbar" dirty="::inventoryDirty" inventory="::inventoryID" x="10" y="403" w="508" h="81"></gui-inventory>
+</gui-container>
+<gui-container name="chest" width="524" height="547" helpers="player">
+  <gui-inventory label="::customName!getCustomName" id="chest-inv" section="inventory" dirty="::inventoryDirty" inventory="::inventoryID" x="10" y="10" w="508" h="213"></gui-inventory>
+  <gui-inventory label="Inventory" id="player-inv" section="inventory" dirty="::player.inventoryDirty" inventory="::player.inventoryID" x="10" y="185" w="508" h="213"></gui-inventory>
+  <gui-inventory label="Hotbar" id="player-hotbar" section="hotbar" dirty="::player.inventoryDirty" inventory="::player.inventoryID" x="10" y="403" w="508" h="81"></gui-inventory>
+</gui-container>
