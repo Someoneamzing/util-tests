@@ -39,6 +39,7 @@ const Chest = require('./classes/Chest.js');
 const Command = require('./classes/Command.js');
 const LootTable = require('./classes/LootTable.js');
 const Spell = require('./classes/Spell.js');
+const Arrow = require('./classes/Arrow.js');
 const GUIInventory = require('./classes/GUIInventory.js');
 // const Robot = require('./classes/Robot.js');
 const loki = require('lokijs');
@@ -62,6 +63,7 @@ connection.addTrackList(Counter.list);
 connection.addTrackList(Chest.list);
 connection.addTrackList(Inventory.list);
 connection.addTrackList(Spell.list);
+connection.addTrackList(Arrow.list);
 
 require('./items.js');
 require('./commands.js');
@@ -311,7 +313,7 @@ async function start(){
       let user = users.by('name', name);
       console.log(user);
       if (user) {
-        if (Player.getByName(name)) res(false, "Player Connected");
+        if (Player.getByName(name)) {res(false, "Player Connected");return;}
         if (user.pass === pass) {
           successfulLogin(socket, name, pass);
           res(true);

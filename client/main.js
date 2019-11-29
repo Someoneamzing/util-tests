@@ -41,6 +41,7 @@ const Building = require('../classes/Building.js');
 const Counter = require('../classes/Counter.js');
 const Chest = require('../classes/Chest.js');
 const Spell = require('../classes/Spell.js');
+const Arrow = require('../classes/Arrow.js');
 const GUIInventory = require('../classes/GUIInventory.js');
 // const Robot = require('../classes/Robot.js');
 const {jsParser, jsonParser, mdParser} = require('../classes/Syntax.js');
@@ -80,6 +81,9 @@ function ready(){
   connection.addTrackList(Counter.list);
   connection.addTrackList(Chest.list);
   connection.addTrackList(Spell.list);
+  connection.addTrackList(Arrow.list);
+
+
 
   require('../items.js')
 
@@ -159,7 +163,7 @@ function load(){
   Sprite.loadAll($('#load')).then(start);
 }
 
-function refreshTut(){
+async function refreshTut(){
   let crawler = (dir)=>{
     let res = "";
     let docs = fs.readdirSync(dir, {encoding: "utf-8", withFileTypes: true});
@@ -168,7 +172,9 @@ function refreshTut(){
       if (doc.isFile()){
         console.log(doc.name);
         let firstLine = new Uint8Array(100);
-        fs.readSync(fs.openSync(path.join(dir, doc.name), "r"), firstLine, 0, 100, 0);
+        let fd = fs.openSync(path.join(dir, doc.name), "r")
+        fs.readSync(fd, firstLine, 0, 100, 0);
+        fs.closeSync(fd)
         firstLine = new TextDecoder('utf-8').decode(firstLine)
         res += "<li class='nav-item'><a class='nav-link' data-file='" + path.join(dir, doc.name) + "' href='#'>" + firstLine.slice(1, firstLine.indexOf("\n")) + "</a></li>"
       } else if (doc.isDirectory()) {
@@ -189,20 +195,18 @@ function topOfDoc(){
   console.log("Scrolling to top");
 }
 
-function loadDoc(file){
+async function loadDoc(file){
   if (file.charAt(0) == "#") {
     file = tutorialIDLocations[file];
   }
-  fs.readFile(file, "utf-8", (err, data)=>{
-    if (err) {
-      notify("danger", "Could not load documentation.", "The documentation file at '" + file + "' could not be loaded. " + err.message, 10000)
-      return;
-    }
-
+  try {
+    let data = fs.readFileSync(file, 'utf-8');
     $("#tutorial-tab-view").html(mdParser.parse(data));
 
     $("#tutorial-tab-view").find("code").replaceWith(function(i){
-      let elem = $("<div class='code-example'>" + this.innerHTML.replace(/\\r/g, "\r").replace(/\\n/g, "\n") + "</div>");
+      let lang = this.getAttribute('data-language')||'javascript';
+      console.log(lang);
+      let elem = $("<div class='code-example' data-language='" + lang + "'>" + this.innerHTML.replace(/\\r/g, "\r").replace(/\\n/g, "\n") + "</div>");
       console.log("Replacing code");
       return elem;
     })
@@ -210,7 +214,9 @@ function loadDoc(file){
     $("#tutorial-tab-view").find(".code-example").each((i,elem)=>{
       let content = elem.innerHTML.replace(/\&gt\;/g, ">").replace(/\&lt\;/g, "<");
       console.log("Transforming code to editors");
-      let editor = ace.edit(elem, {copyWithEmptySelection: true, mode: 'ace/mode/javascript', theme: 'ace/theme/tomorrow_night_bright', readOnly: true});
+      let lang = elem.getAttribute('data-language')||'javascript';
+      console.log(lang);
+      let editor = ace.edit(elem, {copyWithEmptySelection: true, mode: 'ace/mode/' + lang, theme: 'ace/theme/tomorrow_night_bright', readOnly: true});
       editor.setValue(content);
     })
 
@@ -218,7 +224,10 @@ function loadDoc(file){
     $("#tutorial-view-link").one('shown.bs.tab', topOfDoc);
     $("#tutorial-view-link").tab('show');
     $("#tutorial-tab-view").get(0).scrollTop = 0;
-  })
+  } catch (err) {
+    notify("danger", "Could not load documentation.", "The documentation file at '" + file + "' could not be loaded. " + err.message, 10000)
+    return;
+  }
 }
 
 function start(){
@@ -454,26 +463,48 @@ function start(){
     gc.camera.setFollow([myPlayer]);
     gc.begin();
     gc.background(Sprite.get('background-' + myPlayer.world.netID));
+
+    gc.fill("black");
+    gc.noStroke();
+    gc.font('30px Bungee')
+    gc.text(myPlayer.world.displayName, 0,0);
     //console.log(myPlayer.world);
     Wall.list.run('show', gc, myPlayer.world);
+    Arrow.list.run('show', gc, myPlayer.world);
     Teleporter.list.run('show', gc, myPlayer.world);
     Building.list.run('show', gc, myPlayer.world);
     ItemEntity.list.run('show', gc, myPlayer.world);
     Enemy.list.run('show', gc, myPlayer.world);
     // Robot.list.run('show', gc, myPlayer.world);
     Player.list.run('show', gc, myPlayer.world);
-    gc.fill("black");
-    gc.font('30px Bungee')
-    gc.text(myPlayer.world.displayName, 0,0);
+    Player.list.run('drawNamePlate', gc, myPlayer.world);
     gc.end();
+
+    //Player health
     gc.stroke('black');
     gc.fill(HEALTH_BG_COLOUR);
-    gc.cornerRect(10, 10, 100, 15);
+    gc.cornerRect(10, 10, 300, 30);
     gc.noStroke();
     gc.fill(HEALTH_COLOUR);
-    gc.cornerRect(10,10, (myPlayer.health / myPlayer.maxHealth) * 100, 15);
+    gc.cornerRect(10,10, (myPlayer.health / myPlayer.maxHealth) * 300, 30);
+    gc.fill('black');
+    gc.font('14px Arial');
+    gc.textAlign('center', 'middle');
+    gc.text(`${myPlayer.health}/${myPlayer.maxHealth}`, 150, 25);
 
-    let offset = myPlayer.inventory.hotbar.length * 32;
+    //Player stamina
+    gc.stroke('black');
+    gc.fill(STAMINA_BG_COLOUR);
+    gc.cornerRect(gc.w - 10 - 300, 10, 300, 30);
+    gc.noStroke();
+    gc.fill(STAMINA_COLOUR);
+    gc.cornerRect(gc.w - 10 - 300,10, (myPlayer.stamina / myPlayer.maxStamina) * 300, 30);
+    gc.fill('black');
+    gc.font('14px Arial');
+    gc.textAlign('center', 'middle');
+    gc.text(`${myPlayer.stamina}/${myPlayer.maxStamina}`, gc.w - 10 - 150, 25);
+
+    let offset = (myPlayer.inventory.hotbar.length - 1) * 32;
     for (let i = 0; i < myPlayer.inventory.hotbar.length; i ++){
       gc.fill(0,0,0,0.7);
       gc.stroke(128,128,128);

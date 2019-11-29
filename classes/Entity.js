@@ -5,11 +5,12 @@ let list = new TrackList(SIDE, false, false);
 
 class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list, ["x", "y", "w", "h", "health", "maxHealth", "hsp", "vsp", "worldID", "damageTime", "solid"]) {
   constructor(opts = {}){
-    let {x = 0,y = 0,w = 32,h = 32,world = 'main'} = opts;
+    let {x = 0,y = 0,w = 32,h = 32,world = 'main',hsp = 0, vsp = 0} = opts;
     super(opts,x,y,w,h);
-    this.hsp = 0;
-    this.vsp = 0;
+    this.hsp = hsp;
+    this.vsp = vsp;
     this.worldID = world;
+    this.mask = this;
     this.solid = opts.solid || false;
     this.maxHealth = typeof opts.maxHealth != "undefined" ? opts.maxHealth : 20;
     this.health = typeof opts.health != "undefined" ? opts.health : this.maxHealth;
@@ -104,7 +105,10 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list, [
   // }
 
   collision(x = this.x,y = this.y,solid = false,types){
-    let res = this.world.collisionTree.query(new Rectangle(x,y,this.w,this.h), typeof types == 'string'?[types]:types).getGroup('found');
+    let mask = this.mask.copyShape();
+    mask.x = x;
+    mask.y = y;
+    let res = this.world.collisionTree.query(mask, typeof types == 'string'?[types]:types).getGroup('found');
     for (let e of res){
       if (solid && !e.solid) continue;
       if (e.netID != this.netID) return e;

@@ -240,6 +240,100 @@ class Inventory extends NetworkWrapper(Object, list, ["*list", "*hotbar", "selec
     }
   }
 
+  remove(type,amount,data = {},to = 'any',slot){
+    let total = amount;
+    let dataString = JSON.stringify(data);
+    if (amount == 0){console.log('Error in amount');return 0;}
+    if(type == null) {console.log('Error in type');return 0;}
+    if(!['any','hotbar','inventory'].includes(to)) {console.log('Error in to');return 0;}
+    let item = Item.get(type);
+    if (!item) throw new Error("Inventory: Attempted to add invalid item of type " + type + " to the inventory.");
+    let maxStack = item.maxStack;
+    switch(to){
+      case 'any':
+        for(let i = 0; i < this.hotbarSize; i ++){
+          if (!this.hotbar[i]) continue;
+          if((this.hotbar[i].count <= 0 || this.hotbar[i].type != type || JSON.stringify(this.hotbar[i].data) != dataString)) continue;
+          let item = this.hotbar[i];
+          amount -= item.remove(amount);
+          if (item.count <= 0) this.hotbar[i] = null;
+          this.dirtyProps["hotbar"] = true;
+          if (amount <= 0) break;
+        }
+        if (amount <= 0) {
+          return total;
+        }
+        for (let i = 0; i < this.size; i ++){
+          if (!this.list[i]) continue;
+          if((this.list[i].count <= 0 || this.list[i].type != type || JSON.stringify(this.list[i].data) != dataString)) continue;
+          let item = this.list[i];
+          amount -= item.remove(amount);
+          if (item.count <= 0) this.list[i] = null;
+          this.dirtyProps["list"] = true;
+          if (amount <= 0) break;
+        }
+        if (amount <= 0) {
+          return total;
+        }
+        this.dirtyProps["list"] = true;
+        this.dirtyProps["hotbar"] = true;
+        return total - amount;
+        break;
+
+      case 'hotbar':
+        if(typeof slot != 'undefined'){
+          if (!this.hotbar[slot]) return 0;
+          if((this.hotbar[slot].count <= 0 || this.hotbar[slot].type != type || JSON.stringify(this.hotbar[i].data) != dataString)) return 0;
+          let item = this.hotbar[slot];
+          amount -= item.remove(amount);
+          if (item.count <= 0) this.hotbar[slot] = null;
+          this.dirtyProps["hotbar"] = true;
+          return total - amount;
+        }
+        for(let i = 0; i < this.hotbarSize; i ++){
+          if (!this.hotbar[i]) continue;
+          if((this.hotbar[i].hotbar <= 0 || this.hotbar[i].type != type || JSON.stringify(this.hotbar[i].data) != dataString)) continue;
+          let item = this.hotbar[i];
+          amount -= item.remove(amount);
+          if (item.count <= 0) this.hotbar[i] = null;
+          this.dirtyProps["hotbar"] = true;
+          if (amount <= 0) break;
+        }
+        if (amount <= 0) {
+          return total;
+        }
+        this.dirtyProps["hotbar"] = true;
+        return total - amount;
+        break;
+
+      case 'inventory':
+        if(typeof slot != 'undefined'){
+          if (!this.list[slot]) return 0;
+          if((this.list[slot].count <= 0 || this.list[slot].type != type || JSON.stringify(this.list[i].data) != dataString)) return 0;
+          let item = this.list[slot];
+          amount -= item.remove(amount);
+          if (item.count <= 0) this.list[slot] = null;
+          this.dirtyProps["list"] = true;
+          return total - amount;
+        }
+        for (let i = 0; i < this.size; i ++){
+          if (!this.list[i]) continue;
+          if((this.list[i].count <= 0 || this.list[i].type != type || JSON.stringify(this.list[i].data) != dataString)) continue;
+          let item = this.list[i];
+          amount -= item.remove(amount);
+          if (item.count <= 0) this.list[i] = null;
+          this.dirtyProps["list"] = true;
+          if (amount <= 0) break;
+        }
+        if (amount <= 0) {
+          return total;
+        }
+        this.dirtyProps["list"] = true;
+        return total - amount;
+        break;
+    }
+  }
+
   get(to, slot) {
     if((!['hotbar','inventory'].includes(to)) || slot > this[to=='inventory'?'list':to].length-1) return false;
     return this[to=='inventory'?'list':to][slot];

@@ -1,8 +1,6 @@
-const ItemEntity = require('./ItemEntity.js');
+
 const ItemData = require('./ItemData.js');
 const Item = require('./Item.js');
-const World = require('./World.js');
-const Inventory = require('./Inventory.js');
 
 
 class ItemStack {
