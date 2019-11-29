@@ -129,25 +129,25 @@ class Inventory extends NetworkWrapper(Object, list, ["*list", "*hotbar", "selec
     switch(from){
       case 'inventory':
         return this.list.findIndex((item)=>{
-          return item.type == type;
+          return item && item.type == type;
         })
         break;
 
       case 'hotbar':
         return this.hotbar.findIndex((item)=>{
-          return item.type == type;
+          return item && item.type == type;
         })
         break;
 
       case 'any':
         let i = this.hotbar.findIndex((item)=>{
-          return item.type == type;
+          return item && item.type == type;
         })
 
         if (i > -1) return {slot: i, from: 'hotbar'};
 
         return {slot: this.list.findIndex((item)=>{
-          return item.type == type;
+          return item && item.type == type;
         }), from: 'inventory'};
     }
   }

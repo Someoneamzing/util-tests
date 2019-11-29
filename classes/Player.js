@@ -249,7 +249,7 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list, ["mou
   }
 
   static getSaveData(){
-    return JSON.stringify(this.list.getIds().map(e=>this.list.get(e).getSaveData()).reduce((acc,e)=>{acc[e.name] = e; return acc}, {}));
+    return this.list.getIds().map(e=>this.list.get(e).getSaveData()).reduce((acc,e)=>{acc[e.name] = e; return acc}, {});
   }
 }
 

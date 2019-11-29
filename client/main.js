@@ -426,6 +426,8 @@ function start(){
         controls.on('ENTER', ()=>{
           $("#chat-container").clearQueue();
           $("#chat-container").fadeIn('fast');
+          let $chatInput = $('#chat-input');
+          setTimeout($chatInput.focus.bind($chatInput),10);
         })
 
         controls.mouse.on('wheel', (e)=>{
