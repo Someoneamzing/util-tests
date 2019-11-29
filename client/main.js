@@ -402,6 +402,8 @@ function start(){
             case "whisper":
               $('#chat').append("<li><em>" + msg.who + " whispers to you: " + msg.text + "</em></li>");
               break;
+            default:
+              $('#chat').append("<li>" + msg.text + "</li>");
           }
           if (msg.text.search("@" + myPlayer.name) > -1){ $("#chat li:last-child").flash();}
           $('#chat-section').scrollTop(document.getElementById('chat-section').scrollHeight);

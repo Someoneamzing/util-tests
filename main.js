@@ -273,6 +273,8 @@ async function start(){
         }
       })
     });
+    server.send('chat-msg', {who: "", text: "<span style='color: yellow'>" + p.name + " has joined the game.</span>"});
+
 
   }
 
