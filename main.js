@@ -313,8 +313,9 @@ async function start(){
       let user = users.by('name', name);
       console.log(user);
       if (user) {
-        if (Player.getByName(name)) {res(false, "Player Connected");return;}
-        if (user.pass === pass) {
+        if (Player.getByName(name)) {
+          res(false, "Player Connected");
+        } else if (user.pass === pass) {
           successfulLogin(socket, name, pass);
           res(true);
         } else {
