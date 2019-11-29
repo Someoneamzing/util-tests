@@ -8,7 +8,7 @@ const Entity = require('./Entity.js');
 
 const {TrackList, ConnectionManager, CollisionGroup} = require('electron-game-util');
 
-let list = new TrackList(SIDE);
+let list = new TrackList(SIDE, false);
 
 class Building extends NetworkWrapper(CollisionGroup(Entity, "Building"), list) {
   constructor(opts){
@@ -18,7 +18,7 @@ class Building extends NetworkWrapper(CollisionGroup(Entity, "Building"), list) 
   }
 
   use(player) {
-    this.gui.open(connection.connections[player.socketID].socket, this);
+    this.gui.open(connection.connections[player.socketID].socket, this, {player});
   }
 
   destroy(player) {

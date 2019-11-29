@@ -39,8 +39,11 @@ const ItemEntity = require('../classes/ItemEntity.js');
 const Teleporter = require('../classes/Teleporter.js');
 const Building = require('../classes/Building.js');
 const Counter = require('../classes/Counter.js');
+const Chest = require('../classes/Chest.js');
 const Spell = require('../classes/Spell.js');
 const Arrow = require('../classes/Arrow.js');
+const GUIInventory = require('../classes/GUIInventory.js');
+// const Robot = require('../classes/Robot.js');
 const {jsParser, jsonParser, mdParser} = require('../classes/Syntax.js');
 
 let playerID = null;
@@ -68,6 +71,7 @@ function ready(){
   connection.addTrackList(Entity.list);
   connection.addTrackList(Wall.list);
   connection.addTrackList(Enemy.list);
+  // connection.addTrackList(Robot.list);
   connection.addTrackList(Player.list);
   connection.addTrackList(World.list);
   connection.addTrackList(Inventory.list);
@@ -75,8 +79,13 @@ function ready(){
   connection.addTrackList(Teleporter.list);
   connection.addTrackList(Building.list);
   connection.addTrackList(Counter.list);
+  connection.addTrackList(Chest.list);
   connection.addTrackList(Spell.list);
   connection.addTrackList(Arrow.list);
+
+
+
+  require('../items.js')
 
   require('../guis.js');
 
@@ -228,7 +237,7 @@ function start(){
   let loop = new GameLoop('main', 1000/60);
   let gc = new GameCanvas({full: true});
 
-  let controls = new ControlInterface(gc, client);
+  global.controls = new ControlInterface(gc, client);
   let damageTimer = 0;
 
 
@@ -394,6 +403,8 @@ function start(){
             case "whisper":
               $('#chat').append("<li><em>" + msg.who + " whispers to you: " + msg.text + "</em></li>");
               break;
+            default:
+              $('#chat').append("<li>" + msg.text + "</li>");
           }
           if (msg.text.search("@" + myPlayer.name) > -1){ $("#chat li:last-child").flash();}
           $('#chat-section').scrollTop(document.getElementById('chat-section').scrollHeight);
@@ -467,11 +478,12 @@ function start(){
     Building.list.run('show', gc, myPlayer.world);
     ItemEntity.list.run('show', gc, myPlayer.world);
     Enemy.list.run('show', gc, myPlayer.world);
+    // Robot.list.run('show', gc, myPlayer.world);
     Player.list.run('show', gc, myPlayer.world);
     Player.list.run('drawNamePlate', gc, myPlayer.world);
     gc.end();
 
-    //Player Health
+    //Player health
     gc.stroke('black');
     gc.fill(HEALTH_BG_COLOUR);
     gc.cornerRect(10, 10, 300, 30);
@@ -483,14 +495,13 @@ function start(){
     gc.textAlign('center', 'middle');
     gc.text(`${myPlayer.health}/${myPlayer.maxHealth}`, 150, 25);
 
-    //PLayer Stamina
+    //Player stamina
     gc.stroke('black');
     gc.fill(STAMINA_BG_COLOUR);
     gc.cornerRect(gc.w - 10 - 300, 10, 300, 30);
     gc.noStroke();
     gc.fill(STAMINA_COLOUR);
     gc.cornerRect(gc.w - 10 - 300,10, (myPlayer.stamina / myPlayer.maxStamina) * 300, 30);
-
     gc.fill('black');
     gc.font('14px Arial');
     gc.textAlign('center', 'middle');

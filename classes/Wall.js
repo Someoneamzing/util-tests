@@ -1,7 +1,7 @@
 const {Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList} = require('electron-game-util');
 const Entity = require('./Entity.js');
 
-let list = new TrackList(SIDE);
+let list = new TrackList(SIDE, true);
 
 class Wall extends NetworkWrapper(CollisionGroup(Entity, 'Wall'),list) {
   constructor(opts){

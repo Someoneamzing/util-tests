@@ -4,9 +4,11 @@ const Spell = require('./classes/Spell.js')
 const Item = require('./classes/Item.js');
 const Arrow = require('./classes/Arrow.js');
 const BuildingItem = require('./classes/BuildingItem.js');
+const Arrow = require('./classes/Arrow.js');
 
 let stone = new Item('stone');
 let gold = new Item('gold');
+
 let arrow = new Item('arrow');
 let bow = new Item('bow');
 bow.use = (stack, player)=>{

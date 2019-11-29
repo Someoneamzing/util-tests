@@ -1,8 +1,9 @@
 const {Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList} = require('electron-game-util');
 const Entity = require('./Entity.js');
 const Player = require('./Player.js');
+const lang = require('../lang.json').item;
 
-let list = new TrackList(SIDE, false);
+let list = new TrackList(SIDE, false, false);
 
 class Item extends NetworkWrapper(Object, list) {
   constructor(name, sprite = ('item-' + name), maxStack = 99){
@@ -19,6 +20,16 @@ class Item extends NetworkWrapper(Object, list) {
 
   attack(stack, player){
     return false;
+  }
+
+  getTooltip(stack){
+    if (stack.data.getKey("display")) {
+      let name = stack.data.getKey("display").getKey("name");
+      let lore = stack.data.getKey("display").getKey("lore");
+      return name + "<br/><span style='color:darkgray;'>" + Array.from(lore).join("<br/>") + "</span>";
+    } else {
+      return lang[this.name];
+    }
   }
 
   static use(stack, player){

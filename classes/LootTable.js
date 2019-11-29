@@ -73,13 +73,13 @@ class LootTable {
     }, {});
     let out = [];
     for (let type in total) {
-      out.push(...total[type]);
+      out.push(...(total[type].filter(e=>(e.count > 0))));
     }
     return out;
     // return generated;
   }
 
-  static async parseFolder(namespace, dir) {
+  static async loadDirectory(namespace, dir) {
     console.log("Loading folder " + dir + " under namespace " + namespace);
     let proms = [];
     let crawler = async (route) => {
@@ -92,7 +92,7 @@ class LootTable {
             console.log("Making table " + e.name);
             proms.push(fs.readFile(path.join(dir, route, e.name), 'utf-8').then((data)=>{
               console.log("Table " + e.name + " made as " + namespace + ":" + path.join(route, e.name.replace(/\..+/g, "")));
-              new LootTable(namespace + ":" + path.join(route, e.name.replace(/\..+/g, "")), JSON.parse(data))
+              new LootTable(namespace + ":" + path.join(route, e.name.replace(/\..+/g, "")).replace(/\\/g, "/"), JSON.parse(data))
             }));
           }
         } else if (e.isDirectory()) {
@@ -102,6 +102,10 @@ class LootTable {
     }
     await crawler("");
     await Promise.all(proms);
+  }
+
+  static get(name) {
+    return LootTable.list.get(name) || null;
   }
 }
 

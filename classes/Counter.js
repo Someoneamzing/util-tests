@@ -2,9 +2,9 @@ const {TrackList, GUI: GUILoader, GUITextBox} = require('electron-game-util');
 const GUI = GUILoader(connection);
 const Building = require("./Building.js");
 
-let list = new TrackList(SIDE);
+let list = new TrackList(SIDE, true);
 
-class Counter extends NetworkWrapper(Building, list, ["counter"]) {
+class Counter extends NetworkWrapper(Building, list, ["counter", "resetTime"]) {
   constructor(opts = {}){
     super(opts);
     let {resetTime = 100} = opts;
