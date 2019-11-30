@@ -3,10 +3,12 @@ const Item = require('./Item.js');
 class BuildingItem extends Item {
   constructor(BuildingClass){
     super(BuildingClass.registryName);
+    this.buildClass = BuildingClass;
   }
 
   use(stack, player) {
-    new BuildingClass({x: player.controls.mouse.x, y: player.controls.mouse.y});
+    new this.buildClass({x: player.controls.mouse.x, y: player.controls.mouse.y});
+    stack.remove(1);
   }
 }
 

@@ -3,6 +3,7 @@ const Spell = require('./classes/Spell.js')
 
 const Item = require('./classes/Item.js');
 const BuildingItem = require('./classes/BuildingItem.js');
+const Chest = require('./classes/Chest.js');
 const Arrow = require('./classes/Arrow.js');
 
 let stone = new Item('stone');
@@ -47,3 +48,5 @@ spell.attack = (stack, player)=>{
   Spell.sandbox.run(spell);
 }
 spell.use = spell.attack;
+
+let chest = new BuildingItem(Chest);

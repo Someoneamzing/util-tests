@@ -146,6 +146,7 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list, ["mou
             if (mouse.right == true && this.lastRight == false){
               Item.use(this.inventory.selected, this);
             }
+            if (this.inventory.selected.count <= 0) this.inventory.clear('hotbar', this.inventory.selectedSlot);
           }
 
 
