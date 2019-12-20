@@ -239,7 +239,9 @@ function start(){
   global.controls = new ControlInterface(gc, client);
   let damageTimer = 0;
 
-
+  client.on('chunk-load', (...data)=>{
+    console.log("Chunk Load: ", data);
+  })
 
   markTime('connected-to-server', 'on');
   client.on('connected-to-server', (netID, res)=>{

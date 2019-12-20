@@ -5,6 +5,36 @@ const fs = require('fs');
 const fsp = fs.promises;
 const path = require('path');
 window.$ = require('jquery');
+let logFileStream = fs.createWriteStream('console.txt', 'utf-8');
+let logBuffer = [];
+
+let oldConsole = window.console;
+let logToFile = (...data)=>{
+  logBuffer.push(data.join(', ') + "\r\n");
+  if (logFileStream.writable) {
+    logFileStream.write(logBuffer.join(""));
+    logBuffer.length = 0;
+  }
+  oldConsole.log(...data);
+}
+
+process.on('exit', ()=>{
+  if (logBuffer.length > 0) fs.appendFileSync('console.txt', logBuffer.join("") + "Application exited.")
+})
+
+process.on('uncaughtException', (err)=>{
+  fs.appendFileSync('console.txt', err + "\r\n" + err.stack)
+})
+
+window.console = new Proxy(oldConsole, {
+  get: (obj, property)=>{
+    // oldConsole.log(property)
+    if (['log','info','warn','error'].includes(property)) {
+      return logToFile;
+    }
+    return oldConsole[property];
+  }
+})
 
 
 global.markTime = (event, dir)=>{
@@ -24,7 +54,7 @@ global.SIDE = ConnectionManager.SERVER;
 let server = new Server(2000);
 global.connection = new ConnectionManager(SIDE, server);
 
-
+const Level = require('./classes/Level.js')
 const Entity = require('./classes/Entity.js');
 const Wall = require('./classes/Wall.js');
 const Player = require('./classes/Player.js');
@@ -158,8 +188,9 @@ async function start(){
   echo("Loading LootTables");
   await LootTable.loadDirectory("main","loot_tables")
   echo("Initialising Worlds...")
-  new World({netID: 'main', displayName: 'Homeworld'});
-  new World({netID: 'alien', displayName: 'Martian'});
+  let level = new Level(global.WORLD_NAME);
+  new World({netID: 'main', displayName: 'Homeworld', level});
+  new World({netID: 'alien', displayName: 'Martian', level});
 
   echo("Starting spell engine...")
   Spell.reporter.on('error', (stack, spell, ...rest)=>{
@@ -285,7 +316,7 @@ async function start(){
 
   echo('Loading world...');
   try {
-    connection.deserialise(fs.readFileSync(`saves/${global.WORLD_NAME}/data.json`, 'utf-8'))
+    connection.deserialise(fs.readFileSync(path.join(level.getSaveLocation(),'data.json'), 'utf-8'))
     echo('Done loading!')
   } catch (e) {
     echo("No world found or possible error in loading save. Generating new world.")

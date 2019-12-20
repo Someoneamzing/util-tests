@@ -13,7 +13,7 @@ let arrow = new Item('arrow');
 let bow = new Item('bow');
 bow.use = (stack, player)=>{
   let arrows = player.inventory.getFirst('arrow');
-  if (arrows.slot != -1) {
+  if (arrows.from && arrows.slot != -1) {
     console.log('Fired arrow');
     let aStack = player.inventory[arrows.from][arrows.slot]
     let removed = aStack.remove(1);
