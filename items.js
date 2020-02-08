@@ -2,8 +2,9 @@ const {QueryResult, Circle, Vector} = require('electron-game-util');
 const Spell = require('./classes/Spell.js')
 
 const Item = require('./classes/Item.js');
-const Arrow = require('./classes/Arrow.js');
 const BuildingItem = require('./classes/BuildingItem.js');
+const Chest = require('./classes/Chest.js');
+const Arrow = require('./classes/Arrow.js');
 
 let stone = new Item('stone');
 let gold = new Item('gold');
@@ -12,7 +13,7 @@ let arrow = new Item('arrow');
 let bow = new Item('bow');
 bow.use = (stack, player)=>{
   let arrows = player.inventory.getFirst('arrow');
-  if (arrows.slot != -1) {
+  if (arrows.from && arrows.slot != -1) {
     console.log('Fired arrow');
     let aStack = player.inventory[arrows.from][arrows.slot]
     let removed = aStack.remove(1);
@@ -30,8 +31,7 @@ let sword = new Item('sword');
 sword.attack = (stack, player)=>{
 
   let res = player.world.collisionTree.query(new Circle(player.x, player.y, 40),['Player','Enemy']);
-  if (res.status == QueryResult.OK && player.stamina >= 10){
-    player.makeAction(10);
+  if (res.status == QueryResult.OK){
     for(let e of res.getGroup('found')){
       if (e.netID != player.netID){
         e.damage(5, player);
@@ -48,3 +48,5 @@ spell.attack = (stack, player)=>{
   Spell.sandbox.run(spell);
 }
 spell.use = spell.attack;
+
+let chest = new BuildingItem(Chest);

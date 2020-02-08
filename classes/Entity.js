@@ -2,8 +2,9 @@ const {Point, Rectangle, CollisionGroup, ConnectionManager, NetworkWrapper, Trac
 const World = require('./World.js');
 
 let list = new TrackList(SIDE, false, false);
+let lightEmitters = new Map();
 
-class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list, ["x", "y", "w", "h", "health", "maxHealth", "hsp", "vsp", "worldID", "damageTime", "solid"]) {
+class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list, ["x", "y", "w", "h", "health", "maxHealth", "hsp", "vsp", "worldID", "damageTime", "solid", "isLightEmitter"]) {
   constructor(opts = {}){
     let {x = 0,y = 0,w = 32,h = 32,world = 'main',hsp = 0, vsp = 0} = opts;
     super(opts,x,y,w,h);
@@ -15,6 +16,16 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list, [
     this.maxHealth = typeof opts.maxHealth != "undefined" ? opts.maxHealth : 20;
     this.health = typeof opts.health != "undefined" ? opts.health : this.maxHealth;
     this.damageTime = 0;
+    this.isLightEmitter = typeof opts.isLightEmitter != 'undefined' ? opts.isLightEmitter : false;
+    if (this.isLightEmitter) {
+      this.light = null;
+      lightEmitters.set(this.netID, this);
+    }
+  }
+
+  remove(){
+    if (this.isLightEmitter) lightEmitters.delete(this.netID);
+    super.remove();
   }
 
   get world(){
@@ -131,6 +142,10 @@ class Entity extends NetworkWrapper(CollisionGroup(Rectangle, "Entity"), list, [
       // echo(e.netID);
       e.world.collisionTree.insert(e);
     }
+  }
+
+  static getLightEmitters(worldID) {
+    return Array.from(lightEmitters.values()).filter(e=>e.worldID == worldID);
   }
 }
 

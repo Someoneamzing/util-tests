@@ -1,0 +1,140 @@
+#version 450
+#extension GL_ARB_separate_shader_objects : enable
+
+#define WORKGROUP_SIZE 32
+
+struct Obstacle {
+  uint size;
+  uint offset;
+};
+
+struct Attenuation {
+  float constant;
+  float linear;
+  float exponent;
+};
+
+struct Light {
+  float intensity;
+  vec2 location;
+  Attenuation atten;
+  vec3 color;
+};
+
+struct Pixel {
+  vec4 value;
+};
+
+layout(local_size_x = WORKGROUP_SIZE, local_size_y = WORKGROUP_SIZE, local_size_z = 1) in;
+
+layout(std430, binding = 0) buffer obo {
+  Obstacle obstacles[];
+};
+
+layout(std430, binding = 1) buffer ibo {
+  vec2 points[];
+};
+
+layout(std430, binding = 2) buffer lbo {
+  Light lights[];
+};
+
+layout( binding = 3) buffer buf {
+  uint imageData[];
+};
+
+layout( binding = 4) uniform ubo {
+  uvec2 size;
+  uint numObstacles;
+  uint numLights;
+  vec3 ambientLight;
+};
+
+bool onSegment(vec2 p, vec2 q, vec2 r) {
+    if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&
+        q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
+       return true;
+
+    return false;
+}
+
+int orientation(vec2 p, vec2 q, vec2 r) {
+    int val = int((q.y - p.y) * (r.x - q.x) -
+              (q.x - p.x) * (r.y - q.y));
+
+    if (val == 0) return 0;  // colinear
+
+    return (val > 0)? 1: 2; // clock or counterclock wise
+}
+
+bool doIntersect(vec2 p1, vec2 q1, vec2 p2, vec2 q2) {
+    // Find the four orientations needed for general and
+    // special cases
+    int o1 = orientation(p1, q1, p2);
+    int o2 = orientation(p1, q1, q2);
+    int o3 = orientation(p2, q2, p1);
+    int o4 = orientation(p2, q2, q1);
+
+    // General case
+    if (o1 != o2 && o3 != o4)
+        return true;
+
+    // Special Cases
+    // p1, q1 and p2 are colinear and p2 lies on segment p1q1
+    if (o1 == 0 && onSegment(p1, p2, q1)) return true;
+
+    // p1, q1 and q2 are colinear and q2 lies on segment p1q1
+    if (o2 == 0 && onSegment(p1, q2, q1)) return true;
+
+    // p2, q2 and p1 are colinear and p1 lies on segment p2q2
+    if (o3 == 0 && onSegment(p2, p1, q2)) return true;
+
+     // p2, q2 and q1 are colinear and q1 lies on segment p2q2
+    if (o4 == 0 && onSegment(p2, q1, q2)) return true;
+
+    return false; // Doesn't fall in any of the above cases
+}
+
+bool isPathClear(vec2 start, vec2 end) {
+    if (numObstacles == 0) return true;
+    for (int i = 0; i < numObstacles; i ++) {
+        uint offset = obstacles[i].offset;
+        uint size = obstacles[i].size;
+        for (uint j = offset; j < size + offset - 1; j ++) {
+            if (doIntersect(start, end, points[j], points[j + 1])) {
+            	return false;
+            }
+        }
+        if (doIntersect(start, end, points[offset + size - 1], points[offset])) return false;
+    }
+    return true;
+}
+
+void main()
+{
+  if (gl_GlobalInvocationID.x >= size.x || gl_GlobalInvocationID.y >= size.y) return;
+
+  float x = float(gl_GlobalInvocationID.x);
+  float y = float(gl_GlobalInvocationID.y);
+
+  vec2 fragCoord = vec2(x, y);
+
+  vec4 outLight = vec4(ambientLight,1.0);
+
+  for (int i = 0; i < numLights; i ++) {
+      Light l = lights[i];
+
+      if (isPathClear(fragCoord, l.location)) {
+          vec3 color = l.color;
+
+          vec2 lightDirection = l.location - fragCoord;
+
+          float dist = length(lightDirection);
+
+          outLight += vec4(color * l.intensity / (l.atten.linear + l.atten.linear * l.atten.linear + l.atten.exponent * dist * dist + 0.00001), 0.0);
+      }
+  }
+
+  //Store result into output buffer
+  imageData[size.x * gl_GlobalInvocationID.y + gl_GlobalInvocationID.x] = uint(uint(min(255, outLight.a * 255)) << 24u | uint(min(255, outLight.b * 255)) << 16u | uint(min(255, outLight.g * 255)) << 8u | uint(min(255, outLight.r * 255)));
+}

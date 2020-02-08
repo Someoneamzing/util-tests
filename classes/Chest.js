@@ -10,6 +10,7 @@ class Chest extends NetworkWrapper(Building, list, ["inventoryID", "customName"]
     super(opts);
     let {inventoryID} = opts;
     this.inventoryDirty = false;
+    this.solid = true;
     if (SIDE == ConnectionManager.SERVER) {
         let inventory = new Inventory(opts.inventory?opts.inventory:{size: 27, hotbarSize: 0});
         this.inventoryID = inventory.netID;
@@ -49,6 +50,10 @@ class Chest extends NetworkWrapper(Building, list, ["inventoryID", "customName"]
 
   static get gui(){
     return GUI.list['chest'];
+  }
+
+  static get registryName(){
+    return "chest";
   }
 }
 

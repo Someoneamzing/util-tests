@@ -13,6 +13,36 @@ app.use('/', express.static('client'));
 app.use('/node_modules', express.static('node_modules'));
 
 window.$ = require('jquery');
+// let logFileStream = fs.createWriteStream('console.txt', 'utf-8');
+// let logBuffer = [];
+//
+// let oldConsole = window.console;
+// let logToFile = (...data)=>{
+//   logBuffer.push(data.join(', ') + "\r\n");
+//   if (logFileStream.writable) {
+//     logFileStream.write(logBuffer.join(""));
+//     logBuffer.length = 0;
+//   }
+//   oldConsole.log(...data);
+// }
+//
+// process.on('exit', ()=>{
+//   if (logBuffer.length > 0) fs.appendFileSync('console.txt', logBuffer.join("") + "Application exited.")
+// })
+//
+// process.on('uncaughtException', (err)=>{
+//   fs.appendFileSync('console.txt', err + "\r\n" + err.stack)
+// })
+//
+// window.console = new Proxy(oldConsole, {
+//   get: (obj, property)=>{
+//     // oldConsole.log(property)
+//     if (['log','info','warn','error'].includes(property)) {
+//       return logToFile;
+//     }
+//     return oldConsole[property];
+//   }
+// })
 
 
 global.markTime = (event, dir)=>{
@@ -32,7 +62,7 @@ global.SIDE = ConnectionManager.SERVER;
 let server = new Server(2000);
 global.connection = new ConnectionManager(SIDE, server);
 
-
+const Level = require('./classes/Level.js')
 const Entity = require('./classes/Entity.js');
 const Wall = require('./classes/Wall.js');
 const Player = require('./classes/Player.js');
@@ -55,13 +85,13 @@ const db = new loki('data.db', {autosave: true});
 let users;
 // let
 
-let loop = new GameLoop('main', 1000/60);
+let loop = new GameLoop(false, 1000/60);
 
 
 connection.addTrackList(Entity.list);
 connection.addTrackList(Wall.list);
-connection.addTrackList(Player.list);
 connection.addTrackList(World.list);
+connection.addTrackList(Player.list);
 connection.addTrackList(Enemy.list);
 // connection.addTrackList(Robot.list);
 connection.addTrackList(ItemEntity.list);
@@ -139,6 +169,7 @@ async function saveGame(){
   echo("Saving game as '" + name + "'...");
   let start = Date.now();
   try {await fsp.mkdir('saves/' + name , {recursive:true})} catch (e) {}
+  // TODO: Save Terrain
   let data = connection.serialiseLists();
   await fsp.writeFile(`saves/${name}/data.json`, data, 'utf-8');
   savePlayers();
@@ -166,8 +197,9 @@ async function start(){
   echo("Loading LootTables");
   await LootTable.loadDirectory("main","loot_tables")
   echo("Initialising Worlds...")
-  new World({netID: 'main', displayName: 'Homeworld'});
-  new World({netID: 'alien', displayName: 'Martian'});
+  let level = new Level(global.WORLD_NAME);
+  new World({netID: 'main', displayName: 'Homeworld', level});
+  new World({netID: 'alien', displayName: 'Martian', level});
 
   echo("Starting spell engine...")
   Spell.reporter.on('error', (stack, spell, ...rest)=>{
@@ -275,6 +307,7 @@ async function start(){
 
     socket.emit('connected-to-server', p.netID, (res)=>{
       console.log('New Player');
+      p.connected = true;
       fs.readdir('./user-scripts/' + p.name, "utf-8", (err,files)=>{
         if (err) return console.log("Could not load the users scripts. Assuming first login.");
         for (let file of files) {
@@ -291,13 +324,7 @@ async function start(){
 
   }
 
-  echo('Loading world...');
-  try {
-    connection.deserialise(fs.readFileSync(`saves/${global.WORLD_NAME}/data.json`, 'utf-8'))
-    echo('Done loading!')
-  } catch (e) {
-    echo("No world found or possible error in loading save. Generating new world.")
-  }
+  level.load();
 
   echo('Waiting for connections...');
   markTime('connection', 'on');

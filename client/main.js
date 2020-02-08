@@ -1,4 +1,4 @@
-const {Client, Sprite, ConnectionManager, ControlInterface, TrackList, NetworkWrapper, Rectangle, Line, Point, Circle, GameLoop, GameCanvas, GUI: GUILoader} = require('electron-game-util');
+const {Client, Sprite, ConnectionManager, ControlInterface, TrackList, NetworkWrapper, Rectangle, Line, Point, Circle, Vector, GameLoop, GameCanvas, GUI: GUILoader} = require('electron-game-util');
 let GUI;
 global.SIDE = ConnectionManager.CLIENT;
 require('../config.js');
@@ -6,6 +6,7 @@ const path = require('path')
 const {dialog} = require('electron');
 const fs = require('fs');
 const opn = require('opn');
+// let lightingMap;
 let host = decodeURIComponent(location.hash.slice(1));
 require('../ace-src-noconflict/ace.js');
 ace.config.set('basePath', path.join(__dirname, "../ace-src-noconflict"))
@@ -34,6 +35,7 @@ const Wall = require('../classes/Wall.js');
 const Player = require('../classes/Player.js');
 const Enemy = require('../classes/Enemy.js');
 const World = require('../classes/World.js');
+const Terrain = require('../classes/Terrain.js');
 const Inventory = require('../classes/Inventory.js');
 const ItemEntity = require('../classes/ItemEntity.js');
 const Teleporter = require('../classes/Teleporter.js');
@@ -43,6 +45,9 @@ const Chest = require('../classes/Chest.js');
 const Spell = require('../classes/Spell.js');
 const Arrow = require('../classes/Arrow.js');
 const GUIInventory = require('../classes/GUIInventory.js');
+// const LightingEngine = require('../classes/LightingEngine.js');
+const LightingEngineThread = require('../classes/LightingEngineThread.js');
+let lightingEngine = new LightingEngineThread();
 // const Robot = require('../classes/Robot.js');
 const {jsParser, jsonParser, mdParser} = require('../classes/Syntax.js');
 
@@ -234,13 +239,17 @@ async function loadDoc(file){
 function start(){
 
 
-  let loop = new GameLoop('main', 1000/60);
+  let loop = new GameLoop(true, 1000/60);
   let gc = new GameCanvas({full: true});
+
+
 
   global.controls = new ControlInterface(gc, client);
   let damageTimer = 0;
 
-
+  client.on('chunk-load', (...data)=>{
+    console.log("Chunk Load: ", data);
+  })
 
   markTime('connected-to-server', 'on');
   client.on('connected-to-server', (netID, res)=>{
@@ -437,6 +446,8 @@ function start(){
           }
         })
         gc.resize();
+        // lightingMap = new ImageData(gc.w, gc.h);
+
         gc.camera.setFollow([myPlayer]);
         console.log(gc.camera.follow);
         loop.play();
@@ -462,16 +473,64 @@ function start(){
   })
 
 
-  loop.setLoop(()=>{
+  loop.setLoop(async ()=>{
+
+    Entity.registerCollidables()
+
+    let obstacles = myPlayer.world.collisionTree.query(new Rectangle(gc.camera.x, gc.camera.y, gc.width, gc.height),['lightingSolid']).getGroup('found') || [];
+    let obstacleData = [];
+    let obstaclePoints = obstacles.reduce((acc, e)=>{
+      let vertices = e.vertices.map(p=>({x: (p.x) + gc.w/2 - gc.camera.x, y: gc.h - (( -p.y) + gc.h/2 + gc.camera.y)}));
+      obstacleData.push(vertices.length, obstacleData.length)
+      return acc.concat(vertices.map(a=>[a.x, a.y]).reduce((bcc, d)=>bcc.concat(d),[]));
+    }, []);
+
+    let lightEmitters = Entity.getLightEmitters(myPlayer.worldID);
+    let lightFloatData = lightEmitters.reduce((acc, e)=>{return acc.concat(e.light.data(gc))}, []);
+    //Lighting
+    let lightingData = {
+      obstacleData: new Uint32Array(obstacleData).buffer,
+      obstaclePointData: new Float32Array(obstaclePoints).buffer,
+      lightData: new Float32Array(lightFloatData).buffer,
+      screenSize: {width: gc.w, height: gc.h},
+      numObstacles: obstacles.length,
+      numLights: lightEmitters.length,
+      ambientLight: {
+        r: 0.1,
+        g: 0.1,
+        b: 0.1,
+      }
+    };
+    // let lightingData = {
+    //   obstacleData: new Uint8Array(new Uint32Array([]).buffer),//4,0
+    //   obstaclePointData: new Uint8Array(new Float32Array([]).buffer),//20,20,20,40,40,40,40,20
+    //   lightData: new Uint8Array(new Float32Array([1, 0, 441, 418.5, 0.001, 10, 0.01, 0, 1,1,1, 0]).buffer),//10, 0, 50, 50, 0, 0.001, 0.01, 0 , 1.0,1.0,1.0, 0, 10, 0, 10, 25, 0, 0.001, 0.01, 0 , 1.0,1.0,1.0, 0
+    //   screenSize: {width: 300, height: 300},
+    //   numLights: 1,
+    //   numObstacles: 0
+    // };
+
+    let lightDataArray = new Uint8ClampedArray(await lightingEngine.calculateLighting(lightingData));
+    // let lightDataArray = new Uint8ClampedArray(lightingEngine.calculateLighting(lightingData));
+    // console.log(lightFloatData);
+    // console.log("Light Data Array: " + lightDataArray.slice(0, 12) + " | " + (gc.w * gc.h * 4));
+    let lightingMap = new ImageData(lightDataArray, gc.w, gc.h);
     //gc.clear();
     myPlayer = Player.list.get(playerID);
     gc.camera.setFollow([myPlayer]);
     gc.begin();
     gc.background(Sprite.get('background-' + myPlayer.world.netID));
-
+    let world = World.list.get(myPlayer.world.netID);
+    for (let [coordString, chunk] of world.loadedChunks) {
+      let coords = coordString.split(",");
+      gc.putImageData(chunk.renderData, 0 , 0, Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision, Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision, coords[0] * Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision, coords[1] * Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision, Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision, Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision);
+      gc.noFill();
+      gc.stroke("blue");
+      gc.cornerRect(coords[0] * Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision, coords[1] * Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision, Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision, Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision);
+    }
     gc.fill("black");
     gc.noStroke();
-    gc.font('30px Bungee')
+    gc.font('Bungee', 30)
     gc.text(myPlayer.world.displayName, 0,0);
     //console.log(myPlayer.world);
     Wall.list.run('show', gc, myPlayer.world);
@@ -483,8 +542,50 @@ function start(){
     // Robot.list.run('show', gc, myPlayer.world);
     Player.list.run('show', gc, myPlayer.world);
     Player.list.run('drawNamePlate', gc, myPlayer.world);
+    let corners = new Rectangle(Math.round(myPlayer.x / Terrain.TileState.tileSize / Terrain.TileChunk.worldDivision) * Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision, Math.round(myPlayer.y / Terrain.TileState.tileSize / Terrain.TileChunk.worldDivision) * Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision, 1000, 1000).corners
+    corners = [corners[0].x, corners[0].y, corners[2].x, corners[2].y].map((e,i)=>Math.round/*[i>1?'ceil':'floor']*/(e / Terrain.TileState.tileSize / Terrain.TileChunk.worldDivision) * Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision);
+
+    // Rectangle.fromCorners(...corners).show(gc);
     gc.end();
 
+
+
+
+
+
+    /*
+    gc.opctx.save();
+    let prevOp = gc.opctx.globalCompositeOperation;
+    gc.opctx.clearRect(0,0,w,h);
+    gc.opctx.globalCompositeOperation = 'source-over';
+    gc.opctx.translate(w/2, h/2);
+    gc.opctx.rotate(a);
+    gc.opctx.drawImage(this, i * this.frameWidth, 0, this.frameWidth, this.frameHeight, -w/2, -h/2, w, h);
+    gc.opctx.restore();
+    gc.opctx.globalCompositeOperation = 'source-in';
+    gc.opctx.fillStyle = color;
+    gc.opctx.fillRect(0,0, w, h);
+    gc.opctx.globalCompositeOperation = prevOp;
+
+    gc.ctx.drawImage(gc.opCanvas,0,0,w,h, x - w/2, y - h/2,w,h);
+    */
+    let oldOp = gc.ctx.globalCompositeOperation;
+    gc.ctx.globalCompositeOperation = 'multiply';
+    // gc.noStroke();
+    // gc.fill(128,128,128,255);
+    // gc.circle(300, 300, 20)
+
+    // console.log(lightingMap.data.slice(0,4));
+    // console.log("Put data");
+    gc.putImageData(lightingMap, 0, 0, gc.w, gc.h);
+    gc.ctx.globalCompositeOperation = oldOp;
+    // console.log("Neither");
+
+
+    gc.textAlign('left', 'middle');
+    gc.noStroke();
+    gc.fill('white');
+    gc.text(corners.join(", "), 20, 100);
     //Player health
     gc.stroke('black');
     gc.fill(HEALTH_BG_COLOUR);
@@ -493,7 +594,7 @@ function start(){
     gc.fill(HEALTH_COLOUR);
     gc.cornerRect(10,10, (myPlayer.health / myPlayer.maxHealth) * 300, 30);
     gc.fill('black');
-    gc.font('14px Arial');
+    gc.font('Arial', 14);
     gc.textAlign('center', 'middle');
     gc.text(`${myPlayer.health}/${myPlayer.maxHealth}`, 150, 25);
 
@@ -505,7 +606,7 @@ function start(){
     gc.fill(STAMINA_COLOUR);
     gc.cornerRect(gc.w - 10 - 300,10, (myPlayer.stamina / myPlayer.maxStamina) * 300, 30);
     gc.fill('black');
-    gc.font('14px Arial');
+    gc.font('Arial', 14);
     gc.textAlign('center', 'middle');
     gc.text(`${myPlayer.stamina}/${myPlayer.maxStamina}`, gc.w - 10 - 150, 25);
 
@@ -528,12 +629,24 @@ function start(){
     gc.ctx.lineWidth = 3;
     gc.rect(gc.w/2 - offset + myPlayer.inventory.selectedSlot * 64, 32, 64, 64);
     gc.ctx.lineWidth = 1;
+    gc.fill('white');
+    gc.noStroke();
+    let {x, y} = gc.getScreenCoords(controls.mouse.x, controls.mouse.y);
+    let i = (Math.floor(y) * lightingMap.width + Math.floor(x)) * 4;
+    gc.textAlign('left', 'top');
+    gc.font('monospace', 12);
+    gc.text(await lightingEngine.getPerformanceInfo(), 10, 120);
+    // gc.text(lightingEngine.getPerformanceInfo(), 10, 120);
+    gc.textAlign('left', 'bottom');
+    gc.text(lightingMap.data.slice(i, i + 4).join(', '), 10, gc.h - 10);
+    gc.text(lightingMap.data.slice(0, 4).join(', '), 10, gc.h - 20);
     controls.endCycle();
     Sprite.endDraw();
   })
 
   window.onresize = (e)=>{
     gc.resize();
+    // lightingMap = new ImageData(gc.w, gc.h);
   }
 
 
