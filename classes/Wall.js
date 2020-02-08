@@ -3,7 +3,7 @@ const Entity = require('./Entity.js');
 
 let list = new TrackList(SIDE, true);
 
-class Wall extends NetworkWrapper(CollisionGroup(Entity, 'Wall'),list) {
+class Wall extends NetworkWrapper(CollisionGroup(CollisionGroup(Entity, 'Wall'), 'lightingSolid'),list) {
   constructor(opts){
     super(opts);
     this.solid = true;

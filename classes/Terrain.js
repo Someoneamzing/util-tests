@@ -1,5 +1,5 @@
-const os = require('os');
 const path = require("path");
+const os = require('os');
 const littleEndian = os.endianness() == 'LE'
 const {TextEncoder, TextDecoder} = require('util');
 const SimplexNoise = require('simplex-noise');
@@ -54,7 +54,7 @@ class Terrain {
   }
 
   unloadRegion(x, y) {
-    if (this.loadedRegions.has(x) && this.loadedRegions.get(x).has(y)) { this.loadedRegions.get(x).get(y).delete(y); }
+    if (this.loadedRegions.has(x) && this.loadedRegions.get(x).has(y)) { this.loadedRegions.get(x).delete(y); }
   }
 
   loadRegion(x, y, regionData) {
@@ -74,6 +74,7 @@ class Terrain {
           pointer += 4;
         }
       }
+      console.log(chunkLocations);
 
       for (let [chunkId, location] of chunkLocations) {
         pointer = 4096 + location;
@@ -107,16 +108,17 @@ class Terrain {
 
 
       //Last step to avoid race conditions.
-      yMap.set(y, region)
+      this.addRegion(region);
     }
   }
 
   getChunk(x, y) {
-    console.log("Terrain getting chunk: " + x + ", " + y);
+    //console.log("Terrain getting chunk: " + x + ", " + y);
     let region = [Math.floor(x/32), Math.floor(y/32)];
     let regionChunk = [x%32,y%32]
     if (regionChunk[0] < 0) regionChunk[0] += 32;
     if (regionChunk[1] < 0) regionChunk[1] += 32;
+    //console.log(region);
     return this.getRegion(...region).getChunk(...regionChunk);
   }
 
@@ -162,8 +164,9 @@ class Terrain {
   }
 
   getRegion(x, y) {
-    if (this.loadedRegions.has(x) && this.loadedRegions.get(x).has(y))
+    if (this.loadedRegions.has(x) && this.loadedRegions.get(x).has(y)){
       return this.loadedRegions.get(x).get(y);
+    }
     return null;
   }
 
@@ -231,11 +234,31 @@ Terrain.TileRegion = class TileRegion {
 
 Terrain.TileChunk = class TileChunk {
   constructor(x, y){
-    this.chunkCoord = new Uint8Array([x, y]);
+    this.chunkCoord = SIDE == ConnectionManager.CLIENT?[x, y]:new Uint8Array([x, y]);
     this.chunkTiles = [];
     this.populated = false;
     this.dirty = false;
+    if (SIDE == ConnectionManager.CLIENT) {
+      this.renderData = new ImageData(Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision, Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision);
+    }
 
+  }
+
+  isDirty(){
+    let res = false;
+    for (let i = 0; i < TileChunk.worldDivision; i ++) {
+      for (let j = 0; j < TileChunk.worldDivision; j ++) {
+        // let value = generator.noise2D((regionX * Terrain.TileRegion.worldDivision + this.chunkCoord[0] * Terrain.TileChunk.worldDivision + i) / 64, (regionY * Terrain.TileRegion.worldDivision + this.chunkCoord[1] * Terrain.TileChunk.worldDivision + j) / 64);
+        // console.log(i, j);
+        // if (value > 0.8) this.chunkTiles[i][j].addResource('coal', (value - 0.8) * 100);
+        res = this.chunkTiles[i][j].isDirty() || res;
+      }
+    }
+    if (this.dirty) {
+      res = true;
+      this.dirty = false;
+    }
+    return res;
   }
 
   generate(generator, regionX, regionY){
@@ -243,9 +266,10 @@ Terrain.TileChunk = class TileChunk {
     // console.log(this.chunkTiles);
     for (let i = 0; i < TileChunk.worldDivision; i ++) {
       for (let j = 0; j < TileChunk.worldDivision; j ++) {
-        let value = generator.noise2D((regionX * Terrain.TileRegion.worldDivision + this.chunkCoord[0] * Terrain.TileChunk.worldDivision + i) / 64, (regionY * Terrain.TileRegion.worldDivision + this.chunkCoord[1] * Terrain.TileChunk.worldDivision + j) / 64);
-        console.log(i, j);
-        if (value > 0.8) this.chunkTiles[i][j].addResource('coal', (value - 0.8) * 100);
+        // let value = generator.noise2D((regionX * Terrain.TileRegion.worldDivision + this.chunkCoord[0] * Terrain.TileChunk.worldDivision + i) / 64, (regionY * Terrain.TileRegion.worldDivision + this.chunkCoord[1] * Terrain.TileChunk.worldDivision + j) / 64);
+        // console.log(i, j);
+        // if (value > 0.8) this.chunkTiles[i][j].addResource('coal', (value - 0.8) * 100);
+        if (4 < i && i < 12 && 4 < j && j < 12) this.chunkTiles[i][j].addResource('coal', 20);
       }
     }
   }
@@ -265,7 +289,8 @@ Terrain.TileChunk = class TileChunk {
     let chunk = this;
     let chunkX = this.chunkCoord[0] + regionX * 32;
     let chunkY = this.chunkCoord[1] + regionY * 32;
-    let header = new Uint8Array(new Uint32Array([chunkX, chunkY]).buffer);
+    let header = new Uint8Array(new Int32Array([chunkX, chunkY]).buffer);
+    //console.log(`Header: ${header}`);
     let payload = chunk.chunkTiles.reduce((acc1,e,tx)=>{return acc1.concat(e.reduce((acc2,tile,ty)=>{
       if (!tile.hasResources()) return acc2;
       let resourceData = tile.getResources().reduce((d,[name, amount])=>{let nameArr = encoder.encode(name);return d.concat([...new Uint8Array(new Uint16Array([nameArr.length]).buffer), ...nameArr, ...new Uint8Array(new Float32Array([amount]).buffer)])},[]);
@@ -276,27 +301,30 @@ Terrain.TileChunk = class TileChunk {
 
   static fromClientData(data) {
     let pointer = 0;
-    let coords = [regionData.getUint8(pointer, littleEndian), regionData.getUint8(pointer + 1, littleEndian)];
+    let coords = [data.getInt32(pointer, littleEndian), data.getInt32(pointer + 4, littleEndian)];
     let chunk = new Terrain.TileChunk(...coords);
     chunk.populate();
-    pointer += 2;
-    let chunkSize = regionData.getUint32(pointer, littleEndian);
+    pointer += 8;
+    let chunkSize = data.getUint32(pointer, littleEndian);
     pointer += 4;
     let end = pointer + chunkSize;
     while (pointer < end) {
-      let coordByte = regionData.getUint8(pointer, littleEndian);
+      let coordByte = data.getUint8(pointer, littleEndian);
       pointer += 1;
       let [x, y] = [coordByte >>> 4, coordByte % 16];
       let tile = chunk.getTileAt(x, y);
-      let size = regionData.getUint16(pointer, littleEndian);
+      let size = data.getUint16(pointer, littleEndian);
+      //console.log(`Tile Resource Size: ${size}`);
       pointer += 2;
       for (let i = 0; i < size; i ++) {
-        let length = regionData.getUint16(pointer, littleEndian);
+        let length = data.getUint16(pointer, littleEndian);
         pointer += 2;
-        let nameData = new Uint8Array(regionData.buffer, pointer, length);
+        let nameData = new Uint8Array(data.buffer, pointer + 4, length);
+        //console.log(nameData);
         let name = decoder.decode(nameData);
+        //console.log(name);
         pointer += length;
-        let amount = regionData.getFloat32(pointer, littleEndian);
+        let amount = data.getFloat32(pointer, littleEndian);
         pointer += 4;
         tile.addResource(name, amount);
       }
@@ -309,6 +337,25 @@ Terrain.TileChunk = class TileChunk {
     return this.chunkTiles[x][y];
   }
 
+  render(){
+    Terrain.renderCtx.clearRect(0,0,Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision,Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision);
+    let colors = {"coal": "#262626"};
+    for (let i = 0; i < Terrain.TileChunk.worldDivision; i ++) {
+      for (let j = 0; j < Terrain.TileChunk.worldDivision; j ++) {
+        let tile = this.getTileAt(i, j);
+        let resources = tile.getResources();
+        let total = resources.reduce((acc, e)=>acc+e[1], 0);
+        for (let [resource, amount] of resources) {
+          //console.log(`Coordinates: ${i},${j} | Resource: '${resource}' | Amount: ${amount}`);
+          Terrain.renderCtx.fillStyle = colors[resource];// + Math.floor(amount / total * 255).toString('16');
+          Terrain.renderCtx.fillRect(i * Terrain.TileState.tileSize, j * Terrain.TileState.tileSize, Terrain.TileState.tileSize, Terrain.TileState.tileSize);
+        }
+      }
+    }
+    this.renderData = Terrain.renderCtx.getImageData(0,0,Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision,Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision);
+    //console.log(this.renderData);
+  }
+
   static get worldDivision() {
     return Terrain.TileState.worldDivision * 16;
   }
@@ -317,6 +364,15 @@ Terrain.TileChunk = class TileChunk {
 Terrain.TileState = class TileState {
   constructor(){
     this.heldResources = new Map();
+    this.dirty = false;
+  }
+
+  isDirty(){
+    if (this.dirty) {
+      this.dirty = false;
+      return true;
+    }
+    return false;
   }
 
   hasResource(name) {
@@ -329,11 +385,13 @@ Terrain.TileState = class TileState {
 
   addResource(name, amount) {
     this.heldResources.set(name,this.getResource(name) + amount);
+    this.dirty = true;
   }
 
   removeResource(name, amount = Infinity) {
     let amountToTake = Math.min(this.getResource(name), amount);
     this.heldResources.set(name,this.getResource(name) - amountToTake);
+    this.dirty = true;
     return amountToTake;
   }
 
@@ -347,7 +405,15 @@ Terrain.TileState = class TileState {
 
   static get worldDivision(){return 1;}
 
-  static get tileSize(){return 16;}
+  static get tileSize(){return 32;}
+}
+
+if (SIDE == ConnectionManager.CLIENT) {
+  Terrain.renderCanvas = document.createElement('canvas');
+  Terrain.renderCanvas.width = Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision;
+  Terrain.renderCanvas.height = Terrain.TileState.tileSize * Terrain.TileChunk.worldDivision;
+  Terrain.renderCtx = Terrain.renderCanvas.getContext('2d');
+  //console.log(Terrain.renderCtx);
 }
 
 module.exports = Terrain;

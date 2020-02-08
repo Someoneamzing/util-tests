@@ -4190,7 +4190,7 @@ Terrain getting chunk: 0, -3
 Terrain getting chunk: -1, 0
 Terrain getting chunk: -2, 0
 Terrain getting chunk: -3, 0
-255,255,255,255,0,0,0,0,150,5,0,0,4,1,0,4,0,99,111,97,108,6,43,52,63,5,1,0,4,0,99,111,97,108,25,140,90,64,6,1,0,4,0,99,111,97,108,108,67,180,64,7,1,0,4,0,99,111,97,108,244,30,234,64,8,1,0,4,0,99,111,97,108,46,140,6,65,9,1,0,4,0,99,111,97,108,219,154,13,65,10,1,0,4,0,99,111,97,108,124,62,9,65,11,1,0,4,0,99,111,97,108,97,35,241,64,12,1,0,4,0,99,111,97,108,139,179,181,64,13,1,0,4,0,99,111,97,108,149,85,62,64,20,1,0,4,0,99,111,97,108,135,113,143,63,21,1,0,4,0,99,111,97,108,227,25,127,64,22,1,0,4,0,99,111,97,108,226,25,203,64,23,1,0,4,0,99,111,97,108,240,138,2,65,24,1,0,4,0,99,111,97,108,251,216,21,65,25,1,0,4,0,99,111,97,108,118,116,30,65,26,1,0,4,0,99,111,97,108,90,92,27,65,27,1,0,4,0,99,111,97,108,198,168,11,65,28,1,0,4,0,99,111,97,108,238,59,221,64,29,1,0,4,0,99,111,97,108,178,117,135,64,30,1,0,4,0,99,111,97,108,143,58,44,63,36,1,0,4,0,99,111,97,108,170,2,140,63,37,1,0,4,0,99,111,97,108,37,106,132,64,38,1,0,4,0,99,111,97,108,176,101,213,64,39,1,0,4,0,99,111,97,108,98,60,10,65,40,1,0,4,0,99,111,97,108,241,227,31,65,41,1,0,4,0,99,111,97,108,195,161,42,65,42,1,0,4,0,99,111,97,108,186,112,41,65,43,1,0,4,0,99,111,97,108,234,101,27,65,44,1,0,4,0,99,111,97,108,246,134,255,64,45,1,0,4,0,99,111,97,108,98,14,172,64,46,1,0,4,0,99,111,97,108,255,167,239,63,52,1,0,4,0,99,111,97,108,166,25,23,63,53,1,0,4,0,99,111,97,108,3,116,117,64,54,1,0,4,0,99,111,97,108,119,238,209,64,55,1,0,4,0,99,111,97,108,80,125,11,65,56,1,0,4,0,99,111,97,108,80,252,35,65,57,1,0,4,0,99,111,97,108,212,103,49,65,58,1,0,4,0,99,111,97,108,155,182,50,65,59,1,0,4,0,99,111,97,108,37,250,38,65,60,1,0,4,0,99,111,97,108,138,113,13,65,61,1,0,4,0,99,111,97,108,16,48,203,64,62,1,0,4,0,99,111,97,108,68,190,60,64,69,1,0,4,0,99,111,97,108,241,193,66,64,70,1,0,4,0,99,111,97,108,162,127,191,64,71,1,0,4,0,99,111,97,108,215,166,5,65,72,1,0,4,0,99,111,97,108,141,110,33,65,73,1,0,4,0,99,111,97,108,109,6,50,65,74,1,0,4,0,99,111,97,108,24,97,54,65,75,1,0,4,0,99,111,97,108,248,139,45,65,76,1,0,4,0,99,111,97,108,46,194,22,65,77,1,0,4,0,99,111,97,108,70,246,226,64,78,1,0,4,0,99,111,97,108,154,212,117,64,85,1,0,4,0,99,111,97,108,23,89,221,63,86,1,0,4,0,99,111,97,108,73,243,156,64,87,1,0,4,0,99,111,97,108,106,46,240,64,88,1,0,4,0,99,111,97,108,240,137,23,65,89,1,0,4,0,99,111,97,108,201,189,43,65,90,1,0,4,0,99,111,97,108,84,161,51,65,91,1,0,4,0,99,111,97,108,129,61,46,65,92,1,0,4,0,99,111,97,108,164,200,26,65,93,1,0,4,0,99,111,97,108,60,106,241,64,94,1,0,4,0,99,111,97,108,35,120,143,64,95,1,0,4,0,99,111,97,108,133,141,252,62,102,1,0,4,0,99,111,97,108,9,129,82,64,103,1,0,4,0,99,111,97,108,56,114,196,64,104,1,0,4,0,99,111,97,108,18,168,5,65,105,1,0,4,0,99,111,97,108,69,214,29,65,106,1,0,4,0,99,111,97,108,102,174,41,65,107,1,0,4,0,99,111,97,108,163,52,40,65,108,1,0,4,0,99,111,97,108,204,153,24,65,109,1,0,4,0,99,111,97,108,77,148,244,64,110,1,0,4,0,99,111,97,108,139,240,153,64,111,1,0,4,0,99,111,97,108,147,33,133,63,118,1,0,4,0,99,111,97,108,89,56,142,63,119,1,0,4,0,99,111,97,108,81,26,135,64,120,1,0,4,0,99,111,97,108,15,109,214,64,121,1,0,4,0,99,111,97,108,68,170,7,65,122,1,0,4,0,99,111,97,108,129,207,23,65,123,1,0,4,0,99,111,97,108,125,165,26,65,124,1,0,4,0,99,111,97,108,247,86,15,65,125,1,0,4,0,99,111,97,108,95,146,234,64,126,1,0,4,0,99,111,97,108,218,77,152,64,127,1,0,4,0,99,111,97,108,227,62,159,63,135,1,0,4,0,99,111,97,108,33,175,221,63,136,1,0,4,0,99,111,97,108,63,134,143,64,137,1,0,4,0,99,111,97,108,128,101,209,64,138,1,0,4,0,99,111,97,108,155,209,250,64,139,1,0,4,0,99,111,97,108,160,223,4,65,140,1,0,4,0,99,111,97,108,1,119,252,64,141,1,0,4,0,99,111,97,108,224,179,209,64,142,1,0,4,0,99,111,97,108,203,185,136,64,143,1,0,4,0,99,111,97,108,74,147,133,63,152,1,0,4,0,99,111,97,108,244,88,216,63,153,1,0,4,0,99,111,97,108,152,45,129,64,154,1,0,4,0,99,111,97,108,164,22,180,64,155,1,0,4,0,99,111,97,108,176,188,204,64,156,1,0,4,0,99,111,97,108,18,91,201,64,157,1,0,4,0,99,111,97,108,68,156,168,64,158,1,0,4,0,99,111,97,108,248,97,83,64,159,1,0,4,0,99,111,97,108,130,255,197,62,169,1,0,4,0,99,111,97,108,118,233,115,63,170,1,0,4,0,99,111,97,108,108,33,54,64,171,1,0,4,0,99,111,97,108,68,114,123,64,172,1,0,4,0,99,111,97,108,173,164,132,64,173,1,0,4,0,99,111,97,108,141,217,92,64,174,1,0,4,0,99,111,97,108,144,183,232,63,187,1,0,4,0,99,111,97,108,89,202,102,63,188,1,0,4,0,99,111,97,108,187,53,185,63,189,1,0,4,0,99,111,97,108,215,217,139,63,254,255,255,255,0,0,0,0,173,1,0,0,184,1,0,4,0,99,111,97,108,235,92,113,61,185,1,0,4,0,99,111,97,108,23,209,26,63,186,1,0,4,0,99,111,97,108,216,66,18,63,199,1,0,4,0,99,111,97,108,106,132,139,63,200,1,0,4,0,99,111,97,108,78,187,5,64,201,1,0,4,0,99,111,97,108,214,64,34,64,202,1,0,4,0,99,111,97,108,246,158,23,64,203,1,0,4,0,99,111,97,108,46,167,196,63,214,1,0,4,0,99,111,97,108,157,88,193,63,215,1,0,4,0,99,111,97,108,43,64,64,64,216,1,0,4,0,99,111,97,108,181,42,126,64,217,1,0,4,0,99,111,97,108,83,100,139,64,218,1,0,4,0,99,111,97,108,201,42,131,64,219,1,0,4,0,99,111,97,108,30,77,73,64,220,1,0,4,0,99,111,97,108,8,115,185,63,229,1,0,4,0,99,111,97,108,157,20,148,63,230,1,0,4,0,99,111,97,108,170,123,75,64,231,1,0,4,0,99,111,97,108,105,119,150,64,232,1,0,4,0,99,111,97,108,127,149,181,64,233,1,0,4,0,99,111,97,108,211,55,193,64,234,1,0,4,0,99,111,97,108,48,116,183,64,235,1,0,4,0,99,111,97,108,132,134,150,64,236,1,0,4,0,99,111,97,108,80,239,57,64,237,1,0,4,0,99,111,97,108,56,183,155,62,245,1,0,4,0,99,111,97,108,156,114,29,64,246,1,0,4,0,99,111,97,108,145,22,146,64,247,1,0,4,0,99,111,97,108,54,216,196,64,248,1,0,4,0,99,111,97,108,205,78,229,64,249,1,0,4,0,99,111,97,108,179,140,241,64,250,1,0,4,0,99,111,97,108,201,159,231,64,251,1,0,4,0,99,111,97,108,47,193,197,64,252,1,0,4,0,99,111,97,108,154,123,138,64,253,1,0,4,0,99,111,97,108,26,36,211,63,253,255,255,255,0,0,0,0,0,0,0,0
+255,255,255,255,0,0,0,0,0,0,0,0,254,255,255,255,0,0,0,0,0,0,0,0,253,255,255,255,0,0,0,0,0,0,0,0
 Terrain getting chunk: -1, -1
 Terrain getting chunk: -1, -2
 Terrain getting chunk: -1, -3
@@ -4200,6 +4200,75 @@ Terrain getting chunk: -2, -3
 Terrain getting chunk: -3, -1
 Terrain getting chunk: -3, -2
 Terrain getting chunk: -3, -3
-255,255,255,255,255,255,255,255,0,0,0,0,255,255,255,255,254,255,255,255,0,0,0,0,255,255,255,255,253,255,255,255,0,0,0,0,254,255,255,255,255,255,255,255,0,0,0,0,254,255,255,255,254,255,255,255,0,0,0,0,254,255,255,255,253,255,255,255,190,2,0,0,0,1,0,4,0,99,111,97,108,188,148,46,63,16,1,0,4,0,99,111,97,108,149,228,109,64,17,1,0,4,0,99,111,97,108,167,9,46,64,18,1,0,4,0,99,111,97,108,121,126,97,63,32,1,0,4,0,99,111,97,108,94,230,197,64,33,1,0,4,0,99,111,97,108,248,2,176,64,34,1,0,4,0,99,111,97,108,78,226,125,64,35,1,0,4,0,99,111,97,108,54,53,212,63,48,1,0,4,0,99,111,97,108,185,110,0,65,49,1,0,4,0,99,111,97,108,235,209,244,64,50,1,0,4,0,99,111,97,108,17,127,205,64,51,1,0,4,0,99,111,97,108,144,41,141,64,52,1,0,4,0,99,111,97,108,69,233,216,63,64,1,0,4,0,99,111,97,108,76,226,18,65,65,1,0,4,0,99,111,97,108,65,162,17,65,66,1,0,4,0,99,111,97,108,87,203,2,65,67,1,0,4,0,99,111,97,108,210,228,206,64,68,1,0,4,0,99,111,97,108,100,129,129,64,69,1,0,4,0,99,111,97,108,209,169,125,63,80,1,0,4,0,99,111,97,108,234,64,25,65,81,1,0,4,0,99,111,97,108,189,145,28,65,82,1,0,4,0,99,111,97,108,61,115,18,65,83,1,0,4,0,99,111,97,108,53,215,247,64,84,1,0,4,0,99,111,97,108,215,45,180,64,85,1,0,4,0,99,111,97,108,238,58,56,64,96,1,0,4,0,99,111,97,108,53,146,18,65,97,1,0,4,0,99,111,97,108,151,47,26,65,98,1,0,4,0,99,111,97,108,195,160,20,65,99,1,0,4,0,99,111,97,108,117,220,2,65,100,1,0,4,0,99,111,97,108,74,224,203,64,101,1,0,4,0,99,111,97,108,16,161,123,64,102,1,0,4,0,99,111,97,108,91,54,107,63,112,1,0,4,0,99,111,97,108,203,11,252,64,113,1,0,4,0,99,111,97,108,223,155,9,65,114,1,0,4,0,99,111,97,108,120,100,8,65,115,1,0,4,0,99,111,97,108,37,141,246,64,116,1,0,4,0,99,111,97,108,233,127,198,64,117,1,0,4,0,99,111,97,108,81,156,130,64,118,1,0,4,0,99,111,97,108,206,146,178,63,128,1,0,4,0,99,111,97,108,218,5,182,64,129,1,0,4,0,99,111,97,108,94,92,212,64,130,1,0,4,0,99,111,97,108,117,12,218,64,131,1,0,4,0,99,111,97,108,250,195,200,64,132,1,0,4,0,99,111,97,108,175,93,162,64,133,1,0,4,0,99,111,97,108,46,104,81,64,134,1,0,4,0,99,111,97,108,185,83,107,63,144,1,0,4,0,99,111,97,108,139,202,36,64,145,1,0,4,0,99,111,97,108,65,5,110,64,146,1,0,4,0,99,111,97,108,183,34,132,64,147,1,0,4,0,99,111,97,108,181,167,118,64,148,1,0,4,0,99,111,97,108,113,158,60,64,149,1,0,4,0,99,111,97,108,222,50,187,63,162,1,0,4,0,99,111,97,108,17,163,235,62,163,1,0,4,0,99,111,97,108,255,183,220,62,253,255,255,255,255,255,255,255,0,0,0,0,253,255,255,255,254,255,255,255,0,0,0,0,253,255,255,255,253,255,255,255,0,0,0,0
+255,255,255,255,255,255,255,255,0,0,0,0,255,255,255,255,254,255,255,255,0,0,0,0,255,255,255,255,253,255,255,255,0,0,0,0,254,255,255,255,255,255,255,255,0,0,0,0,254,255,255,255,254,255,255,255,0,0,0,0,254,255,255,255,253,255,255,255,0,0,0,0,253,255,255,255,255,255,255,255,0,0,0,0,253,255,255,255,254,255,255,255,0,0,0,0,253,255,255,255,253,255,255,255,0,0,0,0
 Sending first init packet with everything on the server.
 New Player
+[object Object]
+Client Disconnected
+Error in type
+TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14TypeError: Cannot read property 'worldID' of undefined
+TypeError: Cannot read property 'worldID' of undefined
+    at World.update (D:\Programming\web\util-tests\classes\World.js:169:20)
+    at TrackList.update (D:\Programming\games\electron-game-util\classes\TrackList.js:42:74)
+    at ConnectionManager.update (D:\Programming\games\electron-game-util\classes\ConnectionManager.js:126:16)
+    at file:///D:/Programming/web/util-tests/main.js:155:14

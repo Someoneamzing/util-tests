@@ -6,7 +6,7 @@ let win;
 let clients = [];
 
 function createWindow(){
-  win = new BrowserWindow({width: 800,height: 700, autoHideMenuBar: true, webPreferences: {experimentalFeatures: true, nodeIntegration: true}});
+  win = new BrowserWindow({width: 800,height: 700, autoHideMenuBar: true, webPreferences: {experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: true}});
 
   win.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
@@ -23,7 +23,7 @@ function createWindow(){
 
 function createClient(loc){
   let i = clients.length;
-  let client = clients[i] = new BrowserWindow({width: 600, height: 480, autoHideMenuBar: true, webPreferences: {experimentalFeatures: true, nodeIntegration: true}});
+  let client = clients[i] = new BrowserWindow({width: 600, height: 480, autoHideMenuBar: true, webPreferences: {experimentalFeatures: true, nodeIntegration: true, nodeIntegrationInWorker: true}});
 
   client.loadURL(url.format({
     pathname: path.join(__dirname, 'client/index.html'),

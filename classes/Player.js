@@ -1,4 +1,4 @@
-const {Rectangle, Point, CollisionGroup, ConnectionManager, NetworkWrapper, TrackList, GUI: GUILoader} = require('electron-game-util');
+const {Rectangle, Point, CollisionGroup, Color, ConnectionManager, NetworkWrapper, TrackList, GUI: GUILoader} = require('electron-game-util');
 const GUI = GUILoader(connection);
 const Entity = require('./Entity.js');
 const ItemEntity = require('./ItemEntity.js');
@@ -6,11 +6,13 @@ const Item = require('./Item.js');
 const World = require('./World.js');
 const Inventory = require('./Inventory.js');
 const Spell = require('./Spell.js');
+const Light = require('./Light.js');
 
 let list = new TrackList(SIDE, false);
 
 class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list, ["mouse", "name", "inventoryID", "spells", "walkSpeed", "maxStamina", "stamina", "staminaRate", "staminaCooldown", "dir"]) {
   constructor(opts){
+    opts.isLightEmitter = true;
     super(opts);
     const {spells = []} = opts;
     this.socketID = opts.socketID;
@@ -27,8 +29,10 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list, ["mou
     this.stamina = typeof opts.stamina != "undefined" ? opts.stamina : this.maxStamina;
     this.staminaCooldown = 0;
     this.dir = 0;
+    this.light = new Light(this.netID, 0, 0, new Color(255, 255, 227), 10, 0.001, 0.01, 0.001);
 
     if (SIDE == ConnectionManager.SERVER) {
+      this.connected = false;
       this.controls = connection.connections[this.socketID].controls;
         let inventory = new Inventory(opts.inventory?opts.inventory:{size: 27, hotbarSize: 9});
         this.inventoryID = inventory.netID;
@@ -206,7 +210,7 @@ class Player extends NetworkWrapper(CollisionGroup(Entity, 'Player'),list, ["mou
     if (world.netID != this.world.netID) return;
 
     gc.noStroke();
-    gc.font('14px Arial');
+    gc.font('Arial', 14);
     gc.textAlign('center', 'bottom');
     let textM = gc.ctx.measureText(this.name);
     gc.fill(0,0,0,0.5);
