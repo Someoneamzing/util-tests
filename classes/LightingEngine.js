@@ -759,7 +759,7 @@ class LightingEngine {
 
     vkMapMemory(this.device, this.uniformBufferMemory, 0, UniformBufferObject.size, 0, mappedMemory);
     pMappedMemory = new Uint32Array(ArrayBuffer.fromAddress(mappedMemory.$, UniformBufferObject.size));
-    let uboData = new UniformBufferObject(new ivec2(screenSize.width, screenSize.height), numObstacles, numLights, new vec3(ambientLight.r, ambientLight.g, ambientLight.b)).int32;
+    let uboData = new UniformBufferObject(new ivec2(screenSize.width, screenSize.height), numObstacles, numLights, new vec3(ambientLight.r/255, ambientLight.g/255, ambientLight.b/255)).int32;
     // console.log(uboData);
     pMappedMemory.set(uboData, 0x0);
     vkUnmapMemory(this.device, this.uniformBufferMemory);

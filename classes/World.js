@@ -13,13 +13,15 @@ function range(length, start = 0) {
 
 let list = new TrackList(SIDE,false);
 
-class World extends NetworkWrapper(Object,list,["displayName"]){
+class World extends NetworkWrapper(Object,list,["displayName", "time", "dayLength"]){
   constructor(opts){
     if (!Player) Player = require('./Player.js');
-    let {id, displayName, level} = opts;
+    let {id, displayName, level, time = 0, dayLength = 24000} = opts;
     super(opts);
     this.displayName = displayName;
     this.level = level;
+    this.time = time;
+    this.dayLength = dayLength;
     this.loadedChunks = new Map();
 
     this.collisionTree = new QuadTree(new Rectangle(0,0,10000,10000), 10, true);
@@ -128,6 +130,10 @@ class World extends NetworkWrapper(Object,list,["displayName"]){
       - The regions that need to be unloaded. (Regions that are loaded but no longer have players in them.)
     */
     if (SIDE == ConnectionManager.SERVER) {
+      this.time ++;
+      if (this.time >= this.dayLength) {
+        this.time = 0;
+      }
       let toLoad = new Set();
       let inUnloadedRegion = new Map();
       let toUnload = new Set();

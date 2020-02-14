@@ -1,4 +1,4 @@
-const {Client, Sprite, ConnectionManager, ControlInterface, TrackList, NetworkWrapper, Rectangle, Line, Point, Circle, Vector, GameLoop, GameCanvas, GUI: GUILoader} = require('electron-game-util');
+const {Client, Sprite, ConnectionManager, ControlInterface, TrackList, NetworkWrapper, Rectangle, Line, Point, Circle, Vector, GameLoop, GameCanvas, GUI: GUILoader, Gradient, Color} = require('electron-game-util');
 let GUI;
 global.SIDE = ConnectionManager.CLIENT;
 require('../config.js');
@@ -8,6 +8,17 @@ const fs = require('fs');
 const opn = require('opn');
 // let lightingMap;
 let host = decodeURIComponent(location.hash.slice(1));
+
+let dayLightGradient = new Gradient([
+  [0, new Color('#000E19FF')],
+  [.125, new Color('#000E19FF')],
+  [.25, new Color('#FFA928FF')],
+  [.37, new Color('#FFFEE8FF')],
+  [.62, new Color('#FFFEE8FF')],
+  [.75, new Color('#FFA928FF')],
+  [.87, new Color('#000E19FF')],
+  [1, new Color('#000E19FF')]
+])
 require('../ace-src-noconflict/ace.js');
 ace.config.set('basePath', path.join(__dirname, "../ace-src-noconflict"))
 window.editor = null;
@@ -485,9 +496,13 @@ function start(){
       return acc.concat(vertices.map(a=>[a.x, a.y]).reduce((bcc, d)=>bcc.concat(d),[]));
     }, []);
 
+    console.log(obstaclePoints);
+
     let lightEmitters = Entity.getLightEmitters(myPlayer.worldID);
     let lightFloatData = lightEmitters.reduce((acc, e)=>{return acc.concat(e.light.data(gc))}, []);
     //Lighting
+    let skyColor = dayLightGradient.getColor(myPlayer.world.time / myPlayer.world.dayLength);
+
     let lightingData = {
       obstacleData: new Uint32Array(obstacleData).buffer,
       obstaclePointData: new Float32Array(obstaclePoints).buffer,
@@ -495,11 +510,7 @@ function start(){
       screenSize: {width: gc.w, height: gc.h},
       numObstacles: obstacles.length,
       numLights: lightEmitters.length,
-      ambientLight: {
-        r: 0.1,
-        g: 0.1,
-        b: 0.1,
-      }
+      ambientLight: {r: skyColor.r,g: skyColor.g,b: skyColor.b}
     };
     // let lightingData = {
     //   obstacleData: new Uint8Array(new Uint32Array([]).buffer),//4,0
@@ -514,7 +525,7 @@ function start(){
     // let lightDataArray = new Uint8ClampedArray(lightingEngine.calculateLighting(lightingData));
     // console.log(lightFloatData);
     // console.log("Light Data Array: " + lightDataArray.slice(0, 12) + " | " + (gc.w * gc.h * 4));
-    let lightingMap = new ImageData(lightDataArray, gc.w, gc.h);
+    let lightingMap = new ImageData(lightDataArray, lightingData.screenSize.width, lightingData.screenSize.height);
     //gc.clear();
     myPlayer = Player.list.get(playerID);
     gc.camera.setFollow([myPlayer]);
@@ -624,6 +635,14 @@ function start(){
         }
       }
     }
+    // gc.noStroke();
+    // gc.fill(skyColor.hex);
+    // gc.cornerRect(gc.w - 50, gc.h - 50, 50, 50);
+    // gc.fill('white');
+    // gc.textAlign('right', 'bottom');
+    // console.log(skyColor);
+    // gc.text(skyColor.r + ', ' + skyColor.g + ', ' + skyColor.b + ', ' + skyColor.a, gc.w - 10, gc.h - 60);
+    // gc.text(myPlayer.world.time, gc.w - 10, gc.h - 80);
     gc.noFill();
     gc.stroke('#ccc');
     gc.ctx.lineWidth = 3;
@@ -640,6 +659,7 @@ function start(){
     gc.textAlign('left', 'bottom');
     gc.text(lightingMap.data.slice(i, i + 4).join(', '), 10, gc.h - 10);
     gc.text(lightingMap.data.slice(0, 4).join(', '), 10, gc.h - 20);
+
     controls.endCycle();
     Sprite.endDraw();
   })
