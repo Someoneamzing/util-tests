@@ -24,7 +24,7 @@
     "simplex-noise": "^2.4.0",
     "uuidv4": "^2.0.0",
     "vm": "^0.1.0",
-    "vm2": "^3.6.4"
+    "vm2": "^3.9.6"
   },
   "devDependencies": {
     "canvas": "^2.6.1",
